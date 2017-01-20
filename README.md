@@ -1,6 +1,6 @@
 #Animus
 ##my _graduation_ project
-My professer told me to build an animation editor to simulate humen walking.
+My professor told me to build an animation editor to simulate humen walking.
 
 Like Jeremy Clarkson always says, "How _hard_ can it be?"
 
