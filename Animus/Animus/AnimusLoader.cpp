@@ -12,19 +12,22 @@ std::vector<GLuint> AnimusLoader::TI;
 
 std::vector<GLuint> AnimusLoader::NI;
 
-void AnimusLoader::parseFace(std::stringstream &ss, GLuint vIndices[3], GLuint tIndices[3], GLuint nIndices[3])
+void AnimusLoader::parseFace(std::stringstream &ss, std::vector<GLuint> &vIndices, std::vector<GLuint> &tIndices, std::vector<GLuint> &nIndices)
 {
 	char discard;
 	char peek;
 	int count;
+	GLuint data;
 
-	for (count = 0; count < 3; count++)
+	//One vertex in one loop
+	do
 	{
 		ss >> peek;
 		if (peek >= '0' && peek <= '9')
 		{
 			ss.putback(peek);
-			ss >> vIndices[count];
+			ss >> data;
+			vIndices.push_back(data);
 			ss >> discard;
 		}
 		else
@@ -36,7 +39,8 @@ void AnimusLoader::parseFace(std::stringstream &ss, GLuint vIndices[3], GLuint t
 		if (peek >= '0' && peek <= '9')
 		{
 			ss.putback(peek);
-			ss >> tIndices[count];
+			ss >> data;
+			tIndices.push_back(data);
 			ss >> discard;
 		}
 		else
@@ -48,15 +52,16 @@ void AnimusLoader::parseFace(std::stringstream &ss, GLuint vIndices[3], GLuint t
 		if (peek >= '0' && peek <= '9')
 		{
 			ss.putback(peek);
-			ss >> nIndices[count];
-			//no discard here because it is the end
+			ss >> data;
+			nIndices.push_back(data);
+			//no discard here because it is the end for this vertex
 		}
 		else
 		{
 			// do nothing
 		}
 
-	}
+	} while (!ss.eof());
 }
 
 int AnimusLoader::loadObj(char* fileName)
@@ -102,29 +107,55 @@ int AnimusLoader::loadObj(char* fileName)
 			{
 				std::stringstream ss;
 				ss << str.substr(2);
-				GLuint vIndices[3], tIndices[3], nIndices[3];
-				for (int i = 0; i < 3; i++)
-				{
-					vIndices[i] = 0;//Initialization. Do not use negative number here(like -1), because GLuint does not support negative number.
-					tIndices[i] = 0;//Initialization. Do not use negative number here(like -1), because GLuint does not support negative number.
-					nIndices[i] = 0;//Initialization. Do not use negative number here(like -1), because GLuint does not support negative number.
-				}
+				int vertexCount = 0;
+				std::vector<GLuint> vIndices, tIndices, nIndices;
+
+				//Parsing
 				parseFace(ss, vIndices, tIndices, nIndices);
-				for (int i = 0; i < 3; i++)
+
+				//Collecting(Reassembling)
+				for (int i = 0; i < vIndices.size(); i++)
 				{
-					if (vIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
+					if (i >= 3)
 					{
-						VI.push_back(vIndices[i] - 1);
+						VI.push_back(vIndices.at(0) - 1);
+						VI.push_back(vIndices.at(i - 1) - 1);
 					}
-					if (tIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
-					{
-						TI.push_back(tIndices[i] - 1);
-					}
-					if (nIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
-					{
-						NI.push_back(nIndices[i] - 1);
-					}
+					VI.push_back(vIndices.at(i) - 1);
 				}
+				for (int i = 0; i < tIndices.size(); i++)
+				{
+					if (i >= 3)
+					{
+						TI.push_back(tIndices.at(0) - 1);
+						TI.push_back(tIndices.at(i - 1) - 1);
+					}
+					TI.push_back(tIndices.at(i) - 1);
+				}
+				for (int i = 0; i < nIndices.size(); i++)
+				{
+					if (i >= 3)
+					{
+						NI.push_back(nIndices.at(0) - 1);
+						NI.push_back(nIndices.at(i - 1) - 1);
+					}
+					NI.push_back(nIndices.at(i) - 1);
+				}
+				//for (int i = 0; i < 3; i++)
+				//{
+				//	if (vIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
+				//	{
+				//		VI.push_back(vIndices[i] - 1);
+				//	}
+				//	if (tIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
+				//	{
+				//		TI.push_back(tIndices[i] - 1);
+				//	}
+				//	if (nIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
+				//	{
+				//		NI.push_back(nIndices[i] - 1);
+				//	}
+				//}
 			}
 			else if (str[0] == '#')
 			{

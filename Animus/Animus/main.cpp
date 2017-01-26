@@ -10,7 +10,7 @@
 
 int main(int argc, char** argv)
 {
-	AnimusLoader::loadObj("monkey_triangle.obj");
+	AnimusLoader::loadObj("monkey_quad.obj");//faces are presented in both quads and triangles
 	AnimusDisplayer::setUp(AnimusLoader::V, AnimusLoader::T, AnimusLoader::N, AnimusLoader::VI, AnimusLoader::TI, AnimusLoader::NI);
 	AnimusDisplayer::mainLoop(argc, argv);
 

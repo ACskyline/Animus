@@ -51,7 +51,7 @@ char* AnimusDisplayer::vertSrc =
 "gl_Position = vMatrix * vPosition;"
 "vec3 worldLight = normalize(LightDirection.xyz);"
 "vec3 worldNormal = normalize(mat3(vMatrix) * vNormal);"
-"fColor = vColor * clamp(dot(worldNormal, worldLight), 0.0, 1.0);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
+"fColor = vColor * (0.5 * dot(worldNormal, worldLight) + 0.5);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
 "}";
 
 char* AnimusDisplayer::fragSrc =

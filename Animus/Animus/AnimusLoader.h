@@ -10,7 +10,7 @@
 class AnimusLoader
 {
 private:
-	static void parseFace(std::stringstream &ss, GLuint vIndices[3], GLuint tIndices[3], GLuint nIndices[3]);
+	static void parseFace(std::stringstream &ss, std::vector<GLuint> &vIndices, std::vector<GLuint> &tIndices, std::vector<GLuint> &nIndices);
 public:
 	static std::vector<glm::vec4> V;
 	static std::vector<glm::vec2> T;
