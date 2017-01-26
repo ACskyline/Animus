@@ -20,7 +20,9 @@ glm::vec3 *AnimusDisplayer::vertexNormals = 0;
 
 GLuint *AnimusDisplayer::vertexIndices = 0;
 
-glm::vec4 AnimusDisplayer::vertexColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+glm::vec4 AnimusDisplayer::vertexColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+
+glm::vec4 AnimusDisplayer::LightDirection = glm::vec4(0.5f, 0.5f, 0.5f, 0.0f);
 
 glm::mat4 AnimusDisplayer::vertexMatrix = glm::perspective<float>(60.0f/180.0f*3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 100.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, 0.0, -3.0));
 
@@ -35,6 +37,7 @@ int AnimusDisplayer::windowSizeY = 600;
 char* AnimusDisplayer::vertSrc =
 "#version 450 core\n"
 "in vec4 vPosition;"
+"in vec3 vNormal;"//
 "out gl_PerVertex"
 "{"
 "vec4 gl_Position;"
@@ -42,10 +45,13 @@ char* AnimusDisplayer::vertSrc =
 "out vec4 fColor;"
 "uniform mat4 vMatrix;"
 "uniform vec4 vColor;"
+"uniform vec4 LightDirection;"//
 "void main(void)"
 "{"
 "gl_Position = vMatrix * vPosition;"
-"fColor = vColor;"
+"vec3 worldLight = normalize(LightDirection.xyz);"
+"vec3 worldNormal = normalize(mat3(vMatrix) * vNormal);"
+"fColor = vColor * clamp(dot(worldNormal, worldLight), 0.0, 1.0);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
 "}";
 
 char* AnimusDisplayer::fragSrc =
@@ -156,12 +162,20 @@ void AnimusDisplayer::init()
 	GLint color = glGetUniformLocation(program, "vColor");
 	glUniform4fv(color, 1, &vertexColor[0]);//second parameter indicates the number of targeted vector, not the number of components in your vector!!!!!!
 
+	GLint lightDirection = glGetUniformLocation(program, "LightDirection");//
+	glUniform4fv(lightDirection, 1, &LightDirection[0]);//second parameter indicates the number of targeted vector, not the number of components in your vector!!!!!!
+
 	GLint position = glGetAttribLocation(program, "vPosition");
+
+	GLint normal = glGetAttribLocation(program, "vNormal");//
+
 
 	glGenBuffers(1, VBOs);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*vertexCount*4, &vertexPositions[0][0], GL_STATIC_DRAW);//
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 0, GL_STATIC_DRAW);//
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertexCount * 4, &vertexPositions[0][0]);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4, sizeof(GLfloat) * vertexCount * 3, &vertexNormals[0][0]);//
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
@@ -171,15 +185,25 @@ void AnimusDisplayer::init()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*vertexIndexCount, vertexIndices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+
 	glGenVertexArrays(1, VAOs);
 
 	glBindVertexArray(VAOs[0]);
+
 	glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
 	glVertexAttribBinding(position, 0);//set binding index
 	glEnableVertexAttribArray(position);
 	glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
+
+	glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(normal, 1);//set binding index
+	glEnableVertexAttribArray(normal);
+	glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+
 	glBindVertexArray(0);
+
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }

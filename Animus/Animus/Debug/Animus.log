@@ -1,4 +1,4 @@
-﻿生成启动时间为 2017/1/23 21:37:15。
+﻿生成启动时间为 2017/1/26 15:21:31。
      1>项目“E:\MyDocuments\Visual Studio Project\Animus\Animus\Animus.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
          D:\VisualStudio2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt AnimusDisplayer.cpp
@@ -12,4 +12,4 @@
 
 生成成功。
 
-已用时间 00:00:00.76
+已用时间 00:00:00.74

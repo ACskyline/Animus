@@ -25,6 +25,7 @@ private:
 	static char *vertSrc;
 	static char *fragSrc;
 	static glm::vec4 vertexColor;
+	static glm::vec4 LightDirection;
 	static glm::mat4 vertexMatrix;
 	static int windowPositionX;
 	static int windowPositionY;
