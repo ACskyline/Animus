@@ -4,12 +4,14 @@
 #include "Dependencies\glm\glm.hpp"
 #include "Dependencies\glm\gtc\matrix_transform.hpp"
 #include "Dependencies\glm\gtc\type_ptr.hpp"
+#include "AnimusType.h"
 #include <iostream>
 #include <vector>
 
 class AnimusDisplayer
 {
 private:
+	static int vertexExist(glm::vec4 *vPosArray, glm::vec2 *vTexArray, glm::vec3 *vNormArray, glm::vec4 vPos, glm::vec2 vTex, glm::vec3 vNorm, int size);
 	static void init();
 	static void renderScene(void);
 	static GLuint program;
@@ -34,7 +36,7 @@ private:
 public:
 	AnimusDisplayer();
 	~AnimusDisplayer();
-	static void setUp(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<GLuint> &VI, const std::vector<GLuint> &TI, const std::vector<GLuint> &NI);
+	static void setUp(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<AnimusIndex> &AI);
 	static void mainLoop(int argc, char**argv);
 };
 

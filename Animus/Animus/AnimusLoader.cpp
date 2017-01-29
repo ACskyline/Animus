@@ -6,13 +6,10 @@ std::vector<glm::vec2> AnimusLoader::T;
 
 std::vector<glm::vec3> AnimusLoader::N;
 
-std::vector<GLuint> AnimusLoader::VI;
+std::vector<AnimusIndex> AnimusLoader::AI;
 
-std::vector<GLuint> AnimusLoader::TI;
-
-std::vector<GLuint> AnimusLoader::NI;
-
-void AnimusLoader::parseFace(std::stringstream &ss, std::vector<GLuint> &vIndices, std::vector<GLuint> &tIndices, std::vector<GLuint> &nIndices)
+//default value is -1. vIndices, tIndices and nIndices have same count
+void AnimusLoader::parseObjFace(std::stringstream &ss, std::vector<AnimusIndex> &aIndices)
 {
 	char discard;
 	char peek;
@@ -22,17 +19,20 @@ void AnimusLoader::parseFace(std::stringstream &ss, std::vector<GLuint> &vIndice
 	//One vertex in one loop
 	do
 	{
+		AnimusIndex AItemp;
+
 		ss >> peek;
 		if (peek >= '0' && peek <= '9')
 		{
 			ss.putback(peek);
 			ss >> data;
-			vIndices.push_back(data);
+			AItemp.VI = data - 1;//index start at 1 in an .obj file but at 0 in an array
 			ss >> discard;
 		}
 		else
 		{
-			// do nothing
+			//push default value
+			AItemp.VI = -1;
 		}
 
 		ss >> peek;
@@ -40,12 +40,13 @@ void AnimusLoader::parseFace(std::stringstream &ss, std::vector<GLuint> &vIndice
 		{
 			ss.putback(peek);
 			ss >> data;
-			tIndices.push_back(data);
+			AItemp.TI = data - 1;//index start at 1 in an .obj file but at 0 in an array
 			ss >> discard;
 		}
 		else
 		{
-			// do nothing
+			//push default value
+			AItemp.TI = -1;
 		}
 
 		ss >> peek;
@@ -53,17 +54,21 @@ void AnimusLoader::parseFace(std::stringstream &ss, std::vector<GLuint> &vIndice
 		{
 			ss.putback(peek);
 			ss >> data;
-			nIndices.push_back(data);
+			AItemp.NI = data - 1;//index start at 1 in an .obj file but at 0 in an array
 			//no discard here because it is the end for this vertex
 		}
 		else
 		{
-			// do nothing
+			//push default value
+			AItemp.NI = -1;
 		}
+
+		aIndices.push_back(AItemp);
 
 	} while (!ss.eof());
 }
 
+//V, T and N do not have same count but VI, TI and NI have same count
 int AnimusLoader::loadObj(char* fileName)
 {
 	std::fstream file;
@@ -107,55 +112,22 @@ int AnimusLoader::loadObj(char* fileName)
 			{
 				std::stringstream ss;
 				ss << str.substr(2);
-				int vertexCount = 0;
-				std::vector<GLuint> vIndices, tIndices, nIndices;
+				std::vector<AnimusIndex> aIndices;
 
 				//Parsing
-				parseFace(ss, vIndices, tIndices, nIndices);
+				parseObjFace(ss, aIndices);
 
 				//Collecting(Reassembling)
-				for (int i = 0; i < vIndices.size(); i++)
+				//if there are more than 3 vertices for one face then split it in to several triangles
+				for (int i = 0; i < aIndices.size(); i++)
 				{
 					if (i >= 3)
 					{
-						VI.push_back(vIndices.at(0) - 1);
-						VI.push_back(vIndices.at(i - 1) - 1);
+						AI.push_back(aIndices.at(0));
+						AI.push_back(aIndices.at(i - 1));
 					}
-					VI.push_back(vIndices.at(i) - 1);
+					AI.push_back(aIndices.at(i));
 				}
-				for (int i = 0; i < tIndices.size(); i++)
-				{
-					if (i >= 3)
-					{
-						TI.push_back(tIndices.at(0) - 1);
-						TI.push_back(tIndices.at(i - 1) - 1);
-					}
-					TI.push_back(tIndices.at(i) - 1);
-				}
-				for (int i = 0; i < nIndices.size(); i++)
-				{
-					if (i >= 3)
-					{
-						NI.push_back(nIndices.at(0) - 1);
-						NI.push_back(nIndices.at(i - 1) - 1);
-					}
-					NI.push_back(nIndices.at(i) - 1);
-				}
-				//for (int i = 0; i < 3; i++)
-				//{
-				//	if (vIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
-				//	{
-				//		VI.push_back(vIndices[i] - 1);
-				//	}
-				//	if (tIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
-				//	{
-				//		TI.push_back(tIndices[i] - 1);
-				//	}
-				//	if (nIndices[i] != 0)//If current value equals to initial value, no value will be pushed.
-				//	{
-				//		NI.push_back(nIndices[i] - 1);
-				//	}
-				//}
 			}
 			else if (str[0] == '#')
 			{
@@ -176,7 +148,7 @@ int AnimusLoader::loadObj(char* fileName)
 	return 0;
 }
 
-void AnimusLoader::printALL(std::vector<glm::vec4> &V, std::vector<glm::vec2> &T, std::vector<glm::vec3> &N, std::vector<GLuint> VI, std::vector<GLuint> TI, std::vector<GLuint> NI)
+void AnimusLoader::printALL(std::vector<glm::vec4> &V, std::vector<glm::vec2> &T, std::vector<glm::vec3> &N, std::vector<AnimusIndex> AI)
 {
 	for (int i = 0; i < V.size(); i++)
 	{
@@ -193,18 +165,11 @@ void AnimusLoader::printALL(std::vector<glm::vec4> &V, std::vector<glm::vec2> &T
 		std::cout << "N:" << N.at(i).x << "," << N.at(i).y << "," << N.at(i).z << std::endl;
 	}
 
-	for (int i = 0; i < VI.size(); i++)
+	for (int i = 0; i < AI.size(); i++)
 	{
-		std::cout << "VI:" << VI.at(i) << std::endl;
+		std::cout << "VI:" << AI.at(i).VI << std::endl;
+		std::cout << "TI:" << AI.at(i).TI << std::endl;
+		std::cout << "NI:" << AI.at(i).NI << std::endl;
 	}
 
-	for (int i = 0; i < TI.size(); i++)
-	{
-		std::cout << "TI:" << TI.at(i) << std::endl;
-	}
-
-	for (int i = 0; i < NI.size(); i++)
-	{
-		std::cout << "NI:" << NI.at(i) << std::endl;
-	}
 }

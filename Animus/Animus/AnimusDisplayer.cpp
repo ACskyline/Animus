@@ -63,20 +63,40 @@ char* AnimusDisplayer::fragSrc =
 "color = fColor;"
 "}";
 
-void AnimusDisplayer::setUp(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<GLuint> &VI, const std::vector<GLuint> &TI, const std::vector<GLuint> &NI)
+int AnimusDisplayer::vertexExist(glm::vec4 *vPosArray, glm::vec2 *vTexArray, glm::vec3 *vNormArray, glm::vec4 vPos, glm::vec2 vTex, glm::vec3 vNorm, int size)
 {
-	bool hasTexcoords = false;
-	bool hasNormals = false;
-
-	if (VI.size() == TI.size())
+	int result = -1;
+	for (int i = 0; i < size; i++)
 	{
-		hasTexcoords = true;
+		if (vPosArray[i] == vPos)
+		{
+			if (vTexArray[i] == vTex)
+			{
+				if (vNormArray[i] == vNorm)
+				{
+					result = i;
+					break;
+				}
+				else
+				{
+					continue;
+				}
+			}
+			else
+			{
+				continue;
+			}
+		}
+		else
+		{
+			continue;
+		}
 	}
-	if (VI.size() == NI.size())
-	{
-		hasNormals = true;
-	}
+	return result;
+}
 
+void AnimusDisplayer::setUp(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<AnimusIndex> &AI)
+{
 	//reset
 	if (vertexPositions != 0)
 	{
@@ -99,42 +119,60 @@ void AnimusDisplayer::setUp(const std::vector<glm::vec4> &V, const std::vector<g
 		vertexIndices = 0;
 	}
 
-	vertexCount = VI.size();
-	vertexIndexCount = VI.size();
+	vertexIndexCount =  AI.size();
 
-	vertexPositions = new glm::vec4[vertexCount];
 	vertexIndices = new GLuint[vertexIndexCount];
+	vertexPositions = new glm::vec4[vertexIndexCount];
+	vertexTexcoords = new glm::vec2[vertexIndexCount];
+	vertexNormals = new glm::vec3[vertexIndexCount];
+
+	vertexCount = 0;
+
+	for (int i = 0; i < vertexIndexCount; i++)
+	{
+		// if a vertex does not have a VI, TI or NI, it will be set to (1, 1, 1, 1), (1, 1, 1) or (1, 1)
+		glm::vec4 newPosition = AI[i].VI >= 0 && AI[i].VI < V.size() ? V[AI[i].VI] : glm::vec4(1, 1, 1, 1);
+		glm::vec2 newTexcoord = AI[i].TI >= 0 && AI[i].TI < T.size() ? T[AI[i].TI] : glm::vec2(1, 1);
+		glm::vec3 newNormal = AI[i].NI >= 0 && AI[i].NI < N.size() ? N[AI[i].NI] : glm::vec3(1, 1, 1);
+
+		//reduce same vertex(same vertex means sharing same position, texcoord and normal)
+		int result = vertexExist(vertexPositions, vertexTexcoords, vertexNormals, newPosition, newTexcoord, newNormal, vertexCount);//check if the new vertex already exist
+
+		if (result >= 0)//exist
+		{
+			//set the index
+			vertexIndices[i] = result;
+		}
+		else//not exist
+		{
+			//add the new vertex and set the index
+			vertexPositions[vertexCount] = newPosition;
+			vertexTexcoords[vertexCount] = newTexcoord;
+			vertexNormals[vertexCount] = newNormal;
+			vertexIndices[i] = vertexCount;
+			vertexCount++;
+		}
+		
+	}
+	glm::vec4 *vertexPositionsTemp = new glm::vec4[vertexCount];
+	glm::vec2 *vertexTexcoordsTemp = new glm::vec2[vertexCount];
+	glm::vec3 *vertexNormalsTemp = new glm::vec3[vertexCount];
 
 	for (int i = 0; i < vertexCount; i++)
 	{
-		vertexPositions[i] = V[VI[i]];
-		vertexIndices[i] = i;
+		vertexPositionsTemp[i] = vertexPositions[i];
+		vertexTexcoordsTemp[i] = vertexTexcoords[i];
+		vertexNormalsTemp[i] = vertexNormals[i];
 	}
 
-	if (hasTexcoords)
-	{
-		vertexTexcoords = new glm::vec2[vertexCount];
-		for (int i = 0; i < vertexCount; i++)
-		{
-			vertexTexcoords[i] = T[TI[i]];
-		}
-	}
-	if (hasNormals)
-	{
-		vertexNormals = new glm::vec3[vertexCount];
-		for (int i = 0; i < vertexCount; i++)
-		{
-			vertexNormals[i] = N[NI[i]];
-		}
-	}
+	delete[] vertexPositions;
+	delete[] vertexTexcoords;
+	delete[] vertexNormals;
 
-	//reduce same vertex(same vertex means sharing same position, texcoord and normal)
-	//
-	//
-	//
-	//
-	//
-	//
+	vertexPositions = vertexPositionsTemp;
+	vertexTexcoords = vertexTexcoordsTemp;
+	vertexNormals = vertexNormalsTemp;
+
 }
 
 void AnimusDisplayer::init()
