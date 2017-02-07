@@ -10,8 +10,15 @@
 
 int main(int argc, char** argv)
 {
-	if (AnimusLoader::loadObj("monkey_quad.obj")==0)//faces are presented in both quads and triangles
+	//if (AnimusLoader::loadObj("monkey_quad.obj")==0)//faces are presented in both quads and triangles
+	//{
+	//	AnimusDisplayer::setUp(AnimusLoader::V, AnimusLoader::T, AnimusLoader::N, AnimusLoader::AI);
+	//	AnimusDisplayer::mainLoop(argc, argv);
+	//}
+
+	if (AnimusLoader::loadFbx("cowboy_bin.fbx")==0)//"cowboy_ascii.fbx" is also supported
 	{
+		AnimusLoader::printALL();
 		AnimusDisplayer::setUp(AnimusLoader::V, AnimusLoader::T, AnimusLoader::N, AnimusLoader::AI);
 		AnimusDisplayer::mainLoop(argc, argv);
 	}

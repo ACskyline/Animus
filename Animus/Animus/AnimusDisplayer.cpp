@@ -22,9 +22,10 @@ GLuint *AnimusDisplayer::vertexIndices = 0;
 
 glm::vec4 AnimusDisplayer::vertexColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
 
-glm::vec4 AnimusDisplayer::LightDirection = glm::vec4(0.5f, 0.5f, 0.5f, 0.0f);
+glm::vec4 AnimusDisplayer::LightDirection = glm::vec4(0.5f, 0.5f, 0.5f, 0.0f);//from vertex to the light
 
-glm::mat4 AnimusDisplayer::vertexMatrix = glm::perspective<float>(60.0f/180.0f*3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 100.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, 0.0, -3.0));
+//all degrees are in radius by default in this version of glm
+glm::mat4 AnimusDisplayer::vertexMatrix = glm::perspective<float>(60.0f/180.0f*3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 100.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, 0.0, -5.0)) * glm::rotate(glm::mat4(), 30.0f/180.0f * 3.14f, glm::vec3(1.0, 0.0, 0.0));
 
 int AnimusDisplayer::windowPositionX = 400;
 
@@ -63,6 +64,7 @@ char* AnimusDisplayer::fragSrc =
 "color = fColor;"
 "}";
 
+//return -1 if not exist, return index if exist
 int AnimusDisplayer::vertexExist(glm::vec4 *vPosArray, glm::vec2 *vTexArray, glm::vec3 *vNormArray, glm::vec4 vPos, glm::vec2 vTex, glm::vec3 vNorm, int size)
 {
 	int result = -1;
