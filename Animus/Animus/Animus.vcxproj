@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>Dependencies\fbxsdk\;$(IncludePath)</IncludePath>
+    <IncludePath>Dependencies\fbxsdk\;Dependencies;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -81,14 +81,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimusAnimationNode.cpp" />
+    <ClCompile Include="AnimusCameraNode.cpp" />
     <ClCompile Include="AnimusDisplayer.cpp" />
+    <ClCompile Include="AnimusLightNode.cpp" />
     <ClCompile Include="AnimusLoader.cpp" />
+    <ClCompile Include="AnimusMaterialNode.cpp" />
+    <ClCompile Include="AnimusMeshNode.cpp" />
+    <ClCompile Include="AnimusNode.cpp" />
+    <ClCompile Include="AnimusTransformNode.cpp" />
     <ClCompile Include="AnimusType.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimusAnimationNode.h" />
+    <ClInclude Include="AnimusCameraNode.h" />
     <ClInclude Include="AnimusDisplayer.h" />
+    <ClInclude Include="AnimusLightNode.h" />
     <ClInclude Include="AnimusLoader.h" />
+    <ClInclude Include="AnimusMaterialNode.h" />
+    <ClInclude Include="AnimusMeshNode.h" />
+    <ClInclude Include="AnimusNode.h" />
+    <ClInclude Include="AnimusTransformNode.h" />
     <ClInclude Include="AnimusType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

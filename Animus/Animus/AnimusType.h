@@ -10,6 +10,11 @@ struct AnimusIndex
 	bool hasTexcoord = false;
 };
 
+enum AnimusNodeType
+{
+	Mesh, Animation, Camera, Transform, Light, Material, AnimusNodeTypeCount
+};
+
 class AnimusType
 {
 public:

@@ -27,6 +27,27 @@
     <ClCompile Include="AnimusType.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="AnimusNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusCameraNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusMeshNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusTransformNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusMaterialNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusLightNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusAnimationNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimusLoader.h">
@@ -36,6 +57,27 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AnimusType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusCameraNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusMeshNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusTransformNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusMaterialNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusLightNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusAnimationNode.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
