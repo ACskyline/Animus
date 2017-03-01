@@ -6,7 +6,6 @@
 //is GLuint.
 ////////////////////////////////////////////
 #include "AnimusDisplayer.h"
-#include "AnimusLoader.h"
 
 int main(int argc, char** argv)
 {
@@ -16,11 +15,24 @@ int main(int argc, char** argv)
 	//	AnimusDisplayer::mainLoop(argc, argv);
 	//}
 
-	if (AnimusLoader::loadFbx("cowboy_bin.fbx")==0)//"cowboy_ascii.fbx" is also supported
+	//if (AnimusLoader::loadFbx("cowboy_bin.fbx", &AnimusDisplayer::lMesh) == 0)//"cowboy_ascii.fbx" is also supported
+	//{
+	//	//AnimusLoader::printALL();
+	//	AnimusDisplayer::lMesh.setUp();
+	//	AnimusDisplayer::mainLoop(argc, argv);
+	//}
+
+	if (AnimusDisplayer::lMesh.loadFbx("cowboy_bin_-zfyu.fbx") != 0)//"cowboy_ascii.fbx" is also supported
 	{
-		AnimusLoader::printALL();
-		AnimusDisplayer::setUp(AnimusLoader::V, AnimusLoader::T, AnimusLoader::N, AnimusLoader::AI);
-		AnimusDisplayer::mainLoop(argc, argv);
+		return 1;
 	}
+
+	if (AnimusDisplayer::lMat.loadTex("texture.dds") != 0)
+	{
+		return 1;
+	}
+
+	AnimusDisplayer::mainLoop(argc, argv);
+	
 	return 0;
 }

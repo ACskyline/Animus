@@ -1,20 +1,13 @@
+//This class is deprecated now
 #include "AnimusLoader.h"
 
-std::vector<glm::vec4> AnimusLoader::V;
-
-std::vector<glm::vec2> AnimusLoader::T;
-
-std::vector<glm::vec3> AnimusLoader::N;
-
-std::vector<AnimusIndex> AnimusLoader::AI;
-
 //return -1 if not exist, return index if exist
-int AnimusLoader::vertexExist(glm::vec4 vertex)
+int AnimusLoader::vertexExist(glm::vec4 vertex, const std::vector<glm::vec4> &_V)
 {
 	int result = -1;
-	for (int i = 0; i < V.size(); i++)
+	for (int i = 0; i < _V.size(); i++)
 	{
-		if (V[i] == vertex)
+		if (_V[i] == vertex)
 		{
 			result = i;
 			break;
@@ -24,12 +17,12 @@ int AnimusLoader::vertexExist(glm::vec4 vertex)
 }
 
 //return -1 if not exist, return index if exist
-int AnimusLoader::normalExist(glm::vec3 normal)
+int AnimusLoader::normalExist(glm::vec3 normal, const std::vector<glm::vec3> &_N)
 {
 	int result = -1;
-	for (int i = 0; i < N.size(); i++)
+	for (int i = 0; i < _N.size(); i++)
 	{
-		if (N[i] == normal)
+		if (_N[i] == normal)
 		{
 			result = i;
 			break;
@@ -39,12 +32,12 @@ int AnimusLoader::normalExist(glm::vec3 normal)
 }
 
 //return -1 if not exist, return index if exist
-int AnimusLoader::texcoordExist(glm::vec2 texcoord)
+int AnimusLoader::texcoordExist(glm::vec2 texcoord, const std::vector<glm::vec2> &_T)
 {
 	int result = -1;
-	for (int i = 0; i < T.size(); i++)
+	for (int i = 0; i < _T.size(); i++)
 	{
-		if (T[i] == texcoord)
+		if (_T[i] == texcoord)
 		{
 			result = i;
 			break;
@@ -115,8 +108,21 @@ void AnimusLoader::parseObjFace(std::stringstream &ss, std::vector<AnimusIndex> 
 	} while (!ss.eof());
 }
 
-void AnimusLoader::parseFbxNode(FbxNode* pNode)
-{
+void AnimusLoader::parseFbxNode(FbxNode* pNode, AnimusMeshNode * lAnimusMesh, glm::mat4 parentSRT = glm::mat4(1))
+{		
+	FbxDouble3 translation = pNode->LclTranslation.Get();
+	FbxDouble3 rotation = pNode->LclRotation.Get();
+	FbxDouble3 scaling = pNode->LclScaling.Get();
+
+	glm::mat4 vertexSRT = parentSRT
+		* glm::translate(glm::mat4(), glm::vec3(translation[0], translation[1], translation[2]))
+		* glm::rotate(glm::mat4(), (float)rotation[2] / 180.0f * 3.14f, glm::vec3(0.0, 0.0, 1.0))
+		* glm::rotate(glm::mat4(), (float)rotation[1] / 180.0f * 3.14f, glm::vec3(0.0, 1.0, 0.0))
+		* glm::rotate(glm::mat4(), (float)rotation[0] / 180.0f * 3.14f, glm::vec3(1.0, 0.0, 0.0))
+		* glm::scale(glm::mat4(), glm::vec3(scaling[0], scaling[1], scaling[2]));
+
+	glm::mat4 normalSRT = glm::transpose(glm::inverse(vertexSRT));
+
 	for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
 	{
 		if (pNode->GetNodeAttributeByIndex(i)->GetAttributeType() == FbxNodeAttribute::eMesh)
@@ -124,7 +130,7 @@ void AnimusLoader::parseFbxNode(FbxNode* pNode)
 			FbxMesh * lMesh = pNode->GetMesh();
 			int controlCount = lMesh->GetControlPointsCount();
 			int polygonCount = lMesh->GetPolygonCount();
-			int VIoffset = V.size();
+			int VIoffset = lAnimusMesh->V.size();
 			const char* UVsetname = 0;
 
 			if (FbxGeometryElementUV* lElementUV = lMesh->GetElementUV())
@@ -166,49 +172,50 @@ void AnimusLoader::parseFbxNode(FbxNode* pNode)
 					}
 
 					glm::vec4 vertex(fbxVertex[0], fbxVertex[1], fbxVertex[2], 1);//shiiiiiiiiiiit, fbxsdk leave this w composition as zero
-					glm::vec3 normal(fbxNormal[0], fbxNormal[1], fbxNormal[2]);
-					glm::vec2 texcoord(fbxTexcoord[0], fbxTexcoord[1]);
-
-					int vi = vertexExist(vertex);
+					vertex = vertexSRT * vertex;
+					int vi = vertexExist(vertex, lAnimusMesh->V);
 					if (vi >= 0)
 					{
 						AItemp.VI = vi;
 					}
 					else
 					{
-						AItemp.VI = V.size();
-						V.push_back(vertex);
+						AItemp.VI = lAnimusMesh->V.size();
+						lAnimusMesh->V.push_back(vertex);
 					}
 					
-					int ni = normalExist(normal);
+					glm::vec3 normal(fbxNormal[0], fbxNormal[1], fbxNormal[2]);
+					normal = (glm::mat3)normalSRT * normal;
+					int ni = normalExist(normal, lAnimusMesh->N);
 					if (ni >= 0)
 					{
 						AItemp.NI = ni;
 					}
 					else
 					{
-						AItemp.NI = N.size();
-						N.push_back(normal);
+						AItemp.NI = lAnimusMesh->N.size();
+						lAnimusMesh->N.push_back(normal);
 					}
 					
-					int ti = texcoordExist(texcoord);
+					glm::vec2 texcoord(fbxTexcoord[0], fbxTexcoord[1]);
+					int ti = texcoordExist(texcoord, lAnimusMesh->T);
 					if (ti >= 0)
 					{
 						AItemp.TI = ti;
 					}
 					else
 					{
-						AItemp.TI = T.size();
-						T.push_back(texcoord);
+						AItemp.TI = lAnimusMesh->T.size();
+						lAnimusMesh->T.push_back(texcoord);
 					}
 
 					if (p >= 3)
 					{
-						AI.push_back(AI[AI.size() - 3]);
-						AI.push_back(AI[AI.size() - 2]);//it should be -1, however, since we have already push back a new value, it is -2
+						lAnimusMesh->AI.push_back(lAnimusMesh->AI[lAnimusMesh->AI.size() - 3]);
+						lAnimusMesh->AI.push_back(lAnimusMesh->AI[lAnimusMesh->AI.size() - 2]);//it should be -1, however, since we have already push back a new value, it is -2
 					}
 
-					AI.push_back(AItemp);
+					lAnimusMesh->AI.push_back(AItemp);
 					
 				}
 			}
@@ -219,10 +226,10 @@ void AnimusLoader::parseFbxNode(FbxNode* pNode)
 
 	// Recursively parse the children.
 	for (int c = 0; c < pNode->GetChildCount(); ++c)
-		parseFbxNode(pNode->GetChild(c));
+		parseFbxNode(pNode->GetChild(c), lAnimusMesh, vertexSRT);
 }
 
-void AnimusLoader::printALL()
+void AnimusLoader::printALL(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<AnimusIndex> &AI)
 {
 	for (int i = 0; i < V.size(); i++)
 	{
@@ -249,7 +256,7 @@ void AnimusLoader::printALL()
 }
 
 //V, T and N do not have same count but VI, TI and NI have same count
-int AnimusLoader::loadObj(char* fileName)
+int AnimusLoader::loadObj(char* fileName, AnimusMeshNode * lMesh)
 {
 	std::fstream file;
 	file.open(fileName, std::ios::in);
@@ -267,7 +274,7 @@ int AnimusLoader::loadObj(char* fileName)
 				ss >> v.y;
 				ss >> v.z;
 				v.w = 1.0f;
-				V.push_back(v);
+				lMesh->V.push_back(v);
 			}
 			else if (str.substr(0, 3) == "vt ")
 			{
@@ -276,7 +283,7 @@ int AnimusLoader::loadObj(char* fileName)
 				glm::vec2 v;
 				ss >> v.x;
 				ss >> v.y;
-				T.push_back(v);
+				lMesh->T.push_back(v);
 			}
 			else if (str.substr(0, 3) == "vn ")
 			{
@@ -286,7 +293,7 @@ int AnimusLoader::loadObj(char* fileName)
 				ss >> v.x;
 				ss >> v.y;
 				ss >> v.z;
-				N.push_back(v);
+				lMesh->N.push_back(v);
 			}
 			else if (str.substr(0, 2) == "f ")
 			{
@@ -303,10 +310,10 @@ int AnimusLoader::loadObj(char* fileName)
 				{
 					if (i >= 3)
 					{
-						AI.push_back(aIndices.at(0));
-						AI.push_back(aIndices.at(i - 1));
+						lMesh->AI.push_back(aIndices.at(0));
+						lMesh->AI.push_back(aIndices.at(i - 1));
 					}
-					AI.push_back(aIndices.at(i));
+					lMesh->AI.push_back(aIndices.at(i));
 				}
 			}
 			else if (str[0] == '#')
@@ -328,7 +335,7 @@ int AnimusLoader::loadObj(char* fileName)
 	return 0;
 }
 
-int AnimusLoader::loadFbx(char* fileName)
+int AnimusLoader::loadFbx(char* fileName, AnimusMeshNode * lMesh)
 {
 	FbxManager* lSdkManager = FbxManager::Create();
 
@@ -351,7 +358,7 @@ int AnimusLoader::loadFbx(char* fileName)
 	if (lRootNode) {
 		for (int i = 0; i < lRootNode->GetChildCount(); i++)
 		{
-			parseFbxNode(lRootNode->GetChild(i));
+			parseFbxNode(lRootNode->GetChild(i), lMesh); 
 		}
 	}
 
