@@ -24,9 +24,6 @@
     <ClCompile Include="AnimusDisplayer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="AnimusType.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="AnimusNode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -48,15 +45,15 @@
     <ClCompile Include="AnimusAnimationNode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="AnimusMarkerNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimusLoader.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AnimusDisplayer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimusType.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AnimusNode.h">
@@ -78,6 +75,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AnimusAnimationNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusMarkerNode.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

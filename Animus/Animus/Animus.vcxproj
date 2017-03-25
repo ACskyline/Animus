@@ -52,7 +52,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -86,11 +86,11 @@
     <ClCompile Include="AnimusDisplayer.cpp" />
     <ClCompile Include="AnimusLightNode.cpp" />
     <ClCompile Include="AnimusLoader.cpp" />
+    <ClCompile Include="AnimusMarkerNode.cpp" />
     <ClCompile Include="AnimusMaterialNode.cpp" />
     <ClCompile Include="AnimusMeshNode.cpp" />
     <ClCompile Include="AnimusNode.cpp" />
     <ClCompile Include="AnimusTransformNode.cpp" />
-    <ClCompile Include="AnimusType.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -99,11 +99,11 @@
     <ClInclude Include="AnimusDisplayer.h" />
     <ClInclude Include="AnimusLightNode.h" />
     <ClInclude Include="AnimusLoader.h" />
+    <ClInclude Include="AnimusMarkerNode.h" />
     <ClInclude Include="AnimusMaterialNode.h" />
     <ClInclude Include="AnimusMeshNode.h" />
     <ClInclude Include="AnimusNode.h" />
     <ClInclude Include="AnimusTransformNode.h" />
-    <ClInclude Include="AnimusType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

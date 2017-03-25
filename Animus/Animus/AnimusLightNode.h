@@ -6,6 +6,7 @@ class AnimusLightNode :
 {
 public:
 	glm::vec4 direction;
+	glm::vec4 position;
 	AnimusLightNode();
 	~AnimusLightNode();
 };

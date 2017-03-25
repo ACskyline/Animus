@@ -9,7 +9,6 @@
 #include "Dependencies\glew\glew.h"
 #include "Dependencies\glm\glm.hpp"
 #include "Dependencies\glm\gtx\rotate_vector.hpp"
-#include "AnimusType.h"
 #include "AnimusMeshNode.h"
 
 class AnimusLoader

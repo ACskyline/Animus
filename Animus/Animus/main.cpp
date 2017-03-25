@@ -22,14 +22,42 @@ int main(int argc, char** argv)
 	//	AnimusDisplayer::mainLoop(argc, argv);
 	//}
 
-	if (AnimusDisplayer::lMesh.loadFbx("cowboy_bin_-zfyu.fbx") != 0)//"cowboy_ascii.fbx" is also supported
+	//if (AnimusDisplayer::lAnim.loadFbxAnimation("cowboy_bin_-zfyu.fbx") != 0)
+	//{
+	//	printf("fuck\n");
+	//}
+
+	//if (AnimusDisplayer::lMesh.loadFbxMesh("cowboy_bin_-zfyu.fbx") != 0)
+	//{
+	//	return 1;
+	//}
+
+	//if (AnimusDisplayer::lMat.loadDdsTex("texture.dds") != 0)
+	//{
+	//	return 1;
+	//}
+
+	if (AnimusDisplayer::lMat.loadDdsTex("texture.dds") != 0)
 	{
 		return 1;
 	}
 
-	if (AnimusDisplayer::lMat.loadTex("texture.dds") != 0)
+	if (AnimusDisplayer::lAnim.loadFbxAnimation("cowboy_ascii_-zfyu.fbx", 0) != 0)
+	{
+		printf("fubar\n");
+	}
+	else
+	{
+		AnimusDisplayer::lAnim.printAll("debug.txt");
+	}
+
+	if (AnimusDisplayer::lMesh.loadFbxMeshNoSRT("cowboy_ascii_-zfyu.fbx") != 0)
 	{
 		return 1;
+	}
+	else
+	{
+		printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
 	}
 
 	AnimusDisplayer::mainLoop(argc, argv);

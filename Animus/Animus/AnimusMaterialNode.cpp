@@ -40,6 +40,7 @@ AnimusMaterialNode::AnimusMaterialNode(int _textureCount)
 		"{"
 		"vec2 realTexcoord = vec2(fTexcoord.s, 1.0 - fTexcoord.t);"//shiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiit,dds picture use filpped UV coordinates
 		"color = fColor * texture(Tex, realTexcoord);"
+		//"color = fColor;"
 		"}";
 }
 
@@ -194,7 +195,15 @@ void AnimusMaterialNode::glSetUpTexture(int index)
 			}
 }
 
-int AnimusMaterialNode::loadTex(char* _filename, int index)
+void AnimusMaterialNode::glUpdateMatrix(const glm::mat4 &vertexMatrix)
+{
+	//outside uniforms
+	glUseProgram(program);
+	GLint matrix = glGetUniformLocation(program, "vMatrix");
+	glUniformMatrix4fv(matrix, 1, GL_FALSE, &vertexMatrix[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
+}
+
+int AnimusMaterialNode::loadDdsTex(char* _filename, int index)
 {
 	textures[index] = gli::load(_filename);
 	if (textures[index].empty())

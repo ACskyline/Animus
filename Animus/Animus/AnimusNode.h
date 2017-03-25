@@ -1,7 +1,12 @@
 #pragma once
-#include "AnimusType.h"
 #include "Dependencies\glm\glm.hpp"
 #include "Dependencies\glm\gtc\matrix_transform.hpp"
+#include "Dependencies\glew\glew.h"
+
+enum AnimusNodeType
+{
+	Mesh, Animation, Camera, Transform, Light, Material, Marker, AnimusNodeTypeCount
+};
 
 class AnimusNode
 {

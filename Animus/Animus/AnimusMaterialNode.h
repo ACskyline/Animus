@@ -19,9 +19,10 @@ public:
 	glm::vec4 vertexColor;
 	char *vertSrc;
 	char *fragSrc;
-	AnimusMaterialNode(int _textureCount = 1);
+	AnimusMaterialNode(int _textureCount = 0);
 	~AnimusMaterialNode();
 	void glSetUp(const glm::mat4 &vertexMatrix, const glm::vec4 &LightDirection);
-	int loadTex(char* filename, int index = 0);
+	void glUpdateMatrix(const glm::mat4 &vertexMatrix);
+	int loadDdsTex(char* filename, int index = 0);
 };
 
