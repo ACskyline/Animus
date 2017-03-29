@@ -8,8 +8,10 @@ const int BUTTON_DOWN = 0;
 const int BUTTON_UP = 1;
 
 AnimusMaterialNode AnimusDisplayer::lMat(1);
+AnimusInstanceMaterialNode AnimusDisplayer::lIMat(1);
 
 AnimusMeshNode AnimusDisplayer::lMesh;
+AnimusInstanceMeshNode AnimusDisplayer::lIMesh;
 
 AnimusTransformNode AnimusDisplayer::lTransformM;
 
@@ -54,16 +56,26 @@ void AnimusDisplayer::initScene()
 	lCamera.perspectiveNear = 0.1f;
 	lCamera.perspectiveFar = 2000.0f;//1600.0f;//
 
+	lTransformM.position = glm::vec3(0, 0, 0);
+
 	glm::mat4 PV = lCamera.calculatePerspectiveProjectMatrix()*lCamera.calculatePerspectiveViewMatrix();
 	glm::mat4 PVM = PV*lTransformM.calculateModelMatrix();//glm::perspective<float>(60.0f / 180.0f * 3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 1600.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, -700.0, -1500.0));
 	glm::vec4 LightDirection = lLight.direction;//from vertex to the light;
+
+	lIMat.glSetUp(PV, LightDirection);
+	glUseProgram(lIMat.program);
+	GLint iposition = glGetAttribLocation(lIMat.program, "vPosition");
+	GLint inormal = glGetAttribLocation(lIMat.program, "vNormal");//
+	GLint itexcoord = glGetAttribLocation(lIMat.program, "vTexcoord");
+	GLint imatrix = glGetAttribLocation(lIMat.program, "vMatrix");
+	lIMesh.glSetUp(100, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), iposition, inormal, itexcoord, imatrix);
+	glUseProgram(0);
 
 	lMat.glSetUp(PVM, LightDirection);
 	glUseProgram(lMat.program);
 	GLint position = glGetAttribLocation(lMat.program, "vPosition");
 	GLint normal = glGetAttribLocation(lMat.program, "vNormal");//
 	GLint texcoord = glGetAttribLocation(lMat.program, "vTexcoord");
-
 	lMesh.glSetUp(position, normal, texcoord);
 	glUseProgram(0);
 
@@ -78,47 +90,36 @@ void AnimusDisplayer::initScene()
 
 void AnimusDisplayer::renderScene(void)
 {
-	clock_t beginF = clock();
-	clock_t endF;
-	clock_t begin;
-	clock_t end;
+	glm::mat4 PV = lCamera.calculatePerspectiveProjectMatrix()*lCamera.calculatePerspectiveViewMatrix();
 
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	frame = (++frame) % lAnim.length;
 
-	if (mustUpdatePVM)
-	{
-		glm::mat4 PV = lCamera.calculatePerspectiveProjectMatrix()*lCamera.calculatePerspectiveViewMatrix();
-		glm::mat4 PVM = PV*lTransformM.calculateModelMatrix();
-
-		lMat.glUpdateMatrix(PVM);
-		lAnim.glUpdateBoneMatrix(PVM);
-		lAxis.glUpdateMarkerMatrix(PVM);
-		lGrid.glUpdateMarkerMatrix(PV);
-
-		mustUpdatePVM = false;
-	}
-
 	////////////////////
 	//Debug lMesh
-	begin = clock();
-	lMesh.glUpdate(frame, &lAnim);
-	end = clock();
-	std::cout << "Update Mesh: " << (end - begin) / (float)CLOCKS_PER_SEC << "\t";
-
-	begin = clock();
+	lMesh.glUpdateQuick(frame, &lAnim);
+	lMat.glUpdateMatrix(PV*lTransformM.calculateModelMatrix());
 	glUseProgram(lMat.program);
 	glBindVertexArray(lMesh.VAOs[0]);
 	glDrawElements(GL_TRIANGLES, lMesh.vertexIndexCount, GL_UNSIGNED_INT, (void*)0);//modified pipeline does not accept GL_QUADS as a parameter
 	glBindVertexArray(0);
-	end = clock();
-	std::cout << "Draw Mesh: " << (end - begin) / (float)CLOCKS_PER_SEC << "\t";
+	/////////////////////
+
+	////////////////////
+	//Debug lIMesh
+	lIMesh.glUpdateQuick(frame, &lAnim);
+	lIMat.glUpdatePV(PV);
+	glUseProgram(lIMat.program);
+	glBindVertexArray(lIMesh.VAOs[0]);
+	glDrawElementsInstanced(GL_TRIANGLES, lIMesh.vertexIndexCount, GL_UNSIGNED_INT, (void*)0, lIMesh.instanceCount);//modified pipeline does not accept GL_QUADS as a parameter
+	glBindVertexArray(0);
 	/////////////////////
 
 	////////////////////
 	//Debug lAnim
+	lAnim.glUpdateBoneMatrix(PV*lTransformM.calculateModelMatrix());
 	glDisable(GL_DEPTH_TEST);
 	lAnim.glUpdateBone(frame);
 	glUseProgram(lAnim.program);
@@ -128,11 +129,14 @@ void AnimusDisplayer::renderScene(void)
 	glEnable(GL_DEPTH_TEST);
 	////////////////////
 
+	
+	lAxis.glUpdateMarkerMatrix(PV*lTransformM.calculateModelMatrix());
 	glUseProgram(lAxis.program);
 	glBindVertexArray(lAxis.VAOs[0]);
 	glDrawArrays(GL_LINES, 0, lAxis.vertexCount);
 	glBindVertexArray(0);
 
+	lGrid.glUpdateMarkerMatrix(PV);
 	glUseProgram(lGrid.program);
 	glBindVertexArray(lGrid.VAOs[0]);
 	glDrawArrays(GL_LINES, 0, lGrid.vertexCount);
@@ -140,10 +144,6 @@ void AnimusDisplayer::renderScene(void)
 
 	glutSwapBuffers();
 	glutPostRedisplay();
-
-	endF = clock();
-	float SPF = (endF - beginF) / (float)CLOCKS_PER_SEC;
-	std::cout << "Frame: " << SPF << "s\t FPS:" << 1/SPF <<std::endl;
 }
 
 void AnimusDisplayer::mouseButton(int button, int state, int x, int y)
@@ -219,14 +219,14 @@ void AnimusDisplayer::mouseMotion(int x, int y)
 		switch (currentState)
 		{
 		case AnimusCameraState::Pan:
-			//when orbiting it is natural to assume we are manipulating the plane, so we need to do an additional flip
-			resultPosition = currentPosition + xAxis * AnimusDisplayer::cameraPanStep * (float)deltaX + yAxis * AnimusDisplayer::cameraPanStep * (float)deltaY;//flip, so total flip = 2
-			resultCenter = currentCenter + xAxis * AnimusDisplayer::cameraPanStep * (float)deltaX + yAxis * AnimusDisplayer::cameraPanStep * (float)deltaY;//flip, so total flip = 2
+			//when panning it is natural to assume we are manipulating the plane, so we need to do an additional flip to both deltaX and deltaY axis
+			resultPosition = currentPosition - xAxis * AnimusDisplayer::cameraPanStep * (float)deltaX + yAxis * AnimusDisplayer::cameraPanStep * (float)deltaY;//flip, so total Y flip = 2, total X flip = 1
+			resultCenter = currentCenter - xAxis * AnimusDisplayer::cameraPanStep * (float)deltaX + yAxis * AnimusDisplayer::cameraPanStep * (float)deltaY;//flip, so total Y flip = 2, total X flip = 1
 			break;
 		case AnimusCameraState::Orbit:
-			//when orbiting it is natural to assume we are manipulating the plane, so we need to do an additional flip
-			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaX, AnimusDisplayer::lCamera.up) * relativePosition;//so total flip = 1
-			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaY, xAxis) * relativePosition;//flip twice(because rotate is for right hand system), so total flip = 3
+			//when orbiting it is natural to assume we are manipulating the plane, so we need to do an additional flip to both deltaX and deltaY
+			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaX, AnimusDisplayer::lCamera.up) * relativePosition;//flip, so total X flip = 1
+			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaY, xAxis) * relativePosition;//flip twice(because rotate is for right hand system), so total Y flip = 3
 			resultPosition = currentCenter + (glm::vec3)relativePosition;
 			resultCenter = currentCenter;
 			break;

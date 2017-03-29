@@ -48,6 +48,12 @@
     <ClCompile Include="AnimusMarkerNode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="AnimusInstanceMaterialNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimusInstanceMeshNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimusLoader.h">
@@ -78,6 +84,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AnimusMarkerNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusInstanceMaterialNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusInstanceMeshNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimusType.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

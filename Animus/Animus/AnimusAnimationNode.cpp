@@ -311,6 +311,7 @@ void AnimusAnimationNode::parseFbxAnimation(FbxNode* inNode, FbxScene* mFBXScene
 				// Get animation information
 				// Now only supports one take
 				FbxAnimStack* currAnimStack = mFBXScene->GetSrcObject<FbxAnimStack>(stackNum);//
+				mFBXScene->SetCurrentAnimationStack(currAnimStack);//
 				FbxTime::EMode currEMode = mFBXScene->GetGlobalSettings().GetTimeMode();
 				FbxString animStackName = currAnimStack->GetName();
 				name = animStackName.Buffer();
