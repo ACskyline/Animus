@@ -1,15 +1,27 @@
-﻿生成启动时间为 2017/3/29 16:48:29。
+﻿生成启动时间为 2017/3/25 13:05:56。
      1>项目“E:\MyDocuments\Visual Studio Project\Animus\Animus\Animus.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         D:\VisualStudio2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D FBXSDK_SHARED /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt AnimusDisplayer.cpp
+         D:\VisualStudio2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D FBXSDK_SHARED /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt AnimusAnimationNode.cpp AnimusDisplayer.cpp AnimusMarkerNode.cpp AnimusMaterialNode.cpp
+         AnimusMaterialNode.cpp
+         AnimusMarkerNode.cpp
          AnimusDisplayer.cpp
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(46): warning C4305: “初始化”: 从“double”到“float”截断
+     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(44): warning C4305: “初始化”: 从“double”到“float”截断
+         AnimusAnimationNode.cpp
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(41): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(71): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(178): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(320): warning C4244: “=”: 从“fbxsdk::FbxLongLong”转换到“int”，可能丢失数据
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(352): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(372): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(402): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(461): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(464): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\visual studio project\animus\animus\animusanimationnode.cpp(473): warning C4018: “<”: 有符号/无符号不匹配
+         正在生成代码...
        Link:
          D:\VisualStudio2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.exe" /INCREMENTAL /NOLOGO /LIBPATH:Dependencies\freeglut\ /LIBPATH:Dependencies\glew\ /LIBPATH:Dependencies\fbxsdk\ freeglutd.lib glew32.lib opengl32.lib libfbxsdk.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.lib" /MACHINE:X86 Debug\AnimusAnimationNode.obj
          Debug\AnimusCameraNode.obj
          Debug\AnimusDisplayer.obj
-         Debug\AnimusInstanceMaterialNode.obj
-         Debug\AnimusInstanceMeshNode.obj
          Debug\AnimusLightNode.obj
          Debug\AnimusLoader.obj
          Debug\AnimusMarkerNode.obj
@@ -23,4 +35,4 @@
 
 生成成功。
 
-已用时间 00:00:01.70
+已用时间 00:00:04.24

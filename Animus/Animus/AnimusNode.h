@@ -5,7 +5,7 @@
 
 enum AnimusNodeType
 {
-	Mesh, Animation, Camera, Transform, Light, Material, Marker, InstanceMaterial, InstanceMesh, AnimusNodeTypeCount
+	Mesh, Animation, Camera, Transform, Light, Material, Marker, AnimusNodeTypeCount
 };
 
 class AnimusNode
