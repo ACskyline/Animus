@@ -42,11 +42,6 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	if (AnimusDisplayer::lIMat.loadDdsTex("texture.dds") != 0)
-	{
-		return 1;
-	}
-
 	if (AnimusDisplayer::lAnim.loadFbxAnimation("cowboy_ascii_-zfyu.fbx", 0) != 0)
 	{
 		printf("fubar\n");
@@ -57,15 +52,6 @@ int main(int argc, char** argv)
 	}
 
 	if (AnimusDisplayer::lMesh.loadFbxMeshNoSRT("cowboy_ascii_-zfyu.fbx") != 0)
-	{
-		return 1;
-	}
-	else
-	{
-		printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
-	}
-
-	if (AnimusDisplayer::lIMesh.loadFbxMeshNoSRT("cowboy_ascii_-zfyu.fbx") != 0)
 	{
 		return 1;
 	}

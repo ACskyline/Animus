@@ -1,12 +1,28 @@
 #pragma once
 #include "AnimusNode.h"
 #include "AnimusAnimationNode.h"
-#include "AnimusType.h"
 #include <fbxsdk.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <vector>
+
+struct AnimusControlPointPostion
+{
+	bool ready = false;
+	glm::vec4 position;
+	glm::mat4x4 positionMatrix;
+};
+
+struct AnimusIndex
+{
+	GLuint VI = -1;
+	GLuint TI = -1;
+	GLuint NI = -1;
+	GLuint CI = -1;//animation
+	bool hasNormal = false;
+	bool hasTexcoord = false;
+};
 
 class AnimusMeshNode :
 	public AnimusNode
@@ -30,6 +46,8 @@ private:
 	void glUpdateMesh(int frame, AnimusAnimationNode* AANode);
 	void glUpdateMeshQuick(int frame, AnimusAnimationNode* AANode);
 	void glUpdateBuffers();
+	void glUpdateAttribs(GLint _position, GLint _normal, GLint _texcoord);
+	void glUpdateAttribs();
 public:
 	AnimusMeshNode();
 	~AnimusMeshNode();
@@ -54,7 +72,7 @@ public:
 	int loadFbxMeshAll(char* fileName);
 	void printALL(const std::vector<glm::vec4> &V, const std::vector<glm::vec2> &T, const std::vector<glm::vec3> &N, const std::vector<AnimusIndex> &AI);
 	void glSetUp(GLint position, GLint normal, GLint texcoord);
+	void glUpdate(int frame, AnimusAnimationNode* AANode, GLint position, GLint normal, GLint texcoord);
 	void glUpdate(int frame, AnimusAnimationNode* AANode);
-	void glUpdateQuick(int frame, AnimusAnimationNode* AANode);
 };
 
