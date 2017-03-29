@@ -84,6 +84,8 @@
     <ClCompile Include="AnimusAnimationNode.cpp" />
     <ClCompile Include="AnimusCameraNode.cpp" />
     <ClCompile Include="AnimusDisplayer.cpp" />
+    <ClCompile Include="AnimusInstanceMaterialNode.cpp" />
+    <ClCompile Include="AnimusInstanceMeshNode.cpp" />
     <ClCompile Include="AnimusLightNode.cpp" />
     <ClCompile Include="AnimusLoader.cpp" />
     <ClCompile Include="AnimusMarkerNode.cpp" />
@@ -97,6 +99,8 @@
     <ClInclude Include="AnimusAnimationNode.h" />
     <ClInclude Include="AnimusCameraNode.h" />
     <ClInclude Include="AnimusDisplayer.h" />
+    <ClInclude Include="AnimusInstanceMaterialNode.h" />
+    <ClInclude Include="AnimusInstanceMeshNode.h" />
     <ClInclude Include="AnimusLightNode.h" />
     <ClInclude Include="AnimusLoader.h" />
     <ClInclude Include="AnimusMarkerNode.h" />
@@ -104,6 +108,7 @@
     <ClInclude Include="AnimusMeshNode.h" />
     <ClInclude Include="AnimusNode.h" />
     <ClInclude Include="AnimusTransformNode.h" />
+    <ClInclude Include="AnimusType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

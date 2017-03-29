@@ -11,6 +11,8 @@
 #include "AnimusLightNode.h"
 #include "AnimusAnimationNode.h"
 #include "AnimusMarkerNode.h"
+#include "AnimusInstanceMaterialNode.h"
+#include "AnimusInstanceMeshNode.h"
 #include <iostream>
 #include <vector>
 
@@ -42,6 +44,10 @@ public:
 	static AnimusAnimationNode lAnim;
 	static AnimusMarkerNode lGrid;
 	static AnimusMarkerNode lAxis;
+
+	static AnimusInstanceMaterialNode lIMat;
+	static AnimusInstanceMeshNode lIMesh;
+
 	AnimusDisplayer();
 	~AnimusDisplayer();
 	static void mainLoop(int argc, char**argv);
