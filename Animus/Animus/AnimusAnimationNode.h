@@ -1,6 +1,6 @@
 #pragma once
 #include "AnimusNode.h"
-#include <fbxsdk.h>
+#include"Dependencies\fbxsdk\fbxsdk.h"
 #include <string>
 #include <vector>
 #include <fstream>

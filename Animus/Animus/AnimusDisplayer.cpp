@@ -19,7 +19,9 @@ AnimusCameraNode AnimusDisplayer::lCamera;
 
 AnimusLightNode AnimusDisplayer::lLight;
 
-AnimusAnimationNode AnimusDisplayer::lAnim;
+AnimusAnimationNode AnimusDisplayer::lAnim0;
+
+AnimusAnimationNode AnimusDisplayer::lAnim1;
 
 AnimusMarkerNode AnimusDisplayer::lGrid(AnimusMarkerNodeType::Grid);
 
@@ -47,14 +49,16 @@ float AnimusDisplayer::cameraOrbitStep = 3.14 / 180;
 
 float AnimusDisplayer::cameraZoomStep = 1;
 
+float AnimusDisplayer::cameraZoomLimit = 1;
+
 bool AnimusDisplayer::mustUpdatePVM = false;
 
 void AnimusDisplayer::initScene()
 {	
-	lCamera.position = glm::vec3(0, 20, 50);//(0, -50, -20); //(0, 700, 1500);//
+	lCamera.position = glm::vec3(0, 20, 50);
 	lCamera.perspectiveAspect = (float)windowSizeX / (float)windowSizeY;
 	lCamera.perspectiveNear = 0.1f;
-	lCamera.perspectiveFar = 2000.0f;//1600.0f;//
+	lCamera.perspectiveFar = 3000.0f;
 
 	lTransformM.position = glm::vec3(0, 0, 0);
 
@@ -62,13 +66,18 @@ void AnimusDisplayer::initScene()
 	glm::mat4 PVM = PV*lTransformM.calculateModelMatrix();//glm::perspective<float>(60.0f / 180.0f * 3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 1600.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, -700.0, -1500.0));
 	glm::vec4 LightDirection = lLight.direction;//from vertex to the light;
 
-	lIMat.glSetUp(PV, LightDirection);
+	lIMat.glSetUp(PV, LightDirection, &lAnim0, &lAnim1);
 	glUseProgram(lIMat.program);
 	GLint iposition = glGetAttribLocation(lIMat.program, "vPosition");
 	GLint inormal = glGetAttribLocation(lIMat.program, "vNormal");//
 	GLint itexcoord = glGetAttribLocation(lIMat.program, "vTexcoord");
-	GLint imatrix = glGetAttribLocation(lIMat.program, "vMatrix");
-	lIMesh.glSetUp(100, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), iposition, inormal, itexcoord, imatrix);
+	GLint iboneW = glGetAttribLocation(lIMat.program, "boneWeight");
+	GLint iboneI = glGetAttribLocation(lIMat.program, "boneIndex");
+	GLint imatrix = glGetAttribLocation(lIMat.program, "vMatrix");//PER-INSTANCE
+	GLint iframe = glGetAttribLocation(lIMat.program, "frame");//PER-INSTANCE
+	GLint ianim = glGetAttribLocation(lIMat.program, "anim");//PER-INSTANCE
+	//lIMesh.glSetUp(1000, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), &lAnim0, iposition, inormal, itexcoord, iboneW, iboneI, imatrix, iframe, ianim);
+	lIMesh.glSetUp(5000, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -20.0), &lAnim0, iposition, inormal, itexcoord, iboneW, iboneI, imatrix, iframe, ianim);
 	glUseProgram(0);
 
 	lMat.glSetUp(PVM, LightDirection);
@@ -79,7 +88,7 @@ void AnimusDisplayer::initScene()
 	lMesh.glSetUp(position, normal, texcoord);
 	glUseProgram(0);
 
-	lAnim.glSetUpBone(PVM);
+	lAnim0.glSetUpBone(PVM);
 	lAxis.glSetUpMarker(PVM);
 	lGrid.glSetUpMarker(PV);
 
@@ -95,11 +104,11 @@ void AnimusDisplayer::renderScene(void)
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	frame = (++frame) % lAnim.length;
+	frame = (++frame) % lAnim0.length;
 
 	////////////////////
 	//Debug lMesh
-	lMesh.glUpdateQuick(frame, &lAnim);
+	lMesh.glUpdateQuick(frame, &lAnim0);
 	lMat.glUpdateMatrix(PV*lTransformM.calculateModelMatrix());
 	glUseProgram(lMat.program);
 	glBindVertexArray(lMesh.VAOs[0]);
@@ -109,7 +118,7 @@ void AnimusDisplayer::renderScene(void)
 
 	////////////////////
 	//Debug lIMesh
-	lIMesh.glUpdateQuick(frame, &lAnim);
+	lIMesh.glUpdate(&lAnim0, &lAnim1);
 	lIMat.glUpdatePV(PV);
 	glUseProgram(lIMat.program);
 	glBindVertexArray(lIMesh.VAOs[0]);
@@ -119,12 +128,12 @@ void AnimusDisplayer::renderScene(void)
 
 	////////////////////
 	//Debug lAnim
-	lAnim.glUpdateBoneMatrix(PV*lTransformM.calculateModelMatrix());
+	lAnim0.glUpdateBoneMatrix(PV*lTransformM.calculateModelMatrix());
 	glDisable(GL_DEPTH_TEST);
-	lAnim.glUpdateBone(frame);
-	glUseProgram(lAnim.program);
-	glBindVertexArray(lAnim.VAOs[0]);
-	glDrawArrays(GL_LINES, 0, lAnim.vertexCount);//modified pipeline does not accept GL_QUADS as a parameter
+	lAnim0.glUpdateBone(frame);
+	glUseProgram(lAnim0.program);
+	glBindVertexArray(lAnim0.VAOs[0]);
+	glDrawArrays(GL_LINES, 0, lAnim0.vertexCount);//modified pipeline does not accept GL_QUADS as a parameter
 	glBindVertexArray(0);
 	glEnable(GL_DEPTH_TEST);
 	////////////////////
@@ -229,9 +238,17 @@ void AnimusDisplayer::mouseMotion(int x, int y)
 			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaY, xAxis) * relativePosition;//flip twice(because rotate is for right hand system), so total Y flip = 3
 			resultPosition = currentCenter + (glm::vec3)relativePosition;
 			resultCenter = currentCenter;
+			if ((resultPosition.x-currentCenter.x) * (currentPosition.x-currentCenter.x) < 0 && (resultPosition.z-currentCenter.z) * (currentPosition.z-currentCenter.z) < 0)
+			{
+				AnimusDisplayer::lCamera.up = -AnimusDisplayer::lCamera.up;
+			}
 			break;
 		case AnimusCameraState::Zoom:
 			resultPosition = currentPosition + zAxis * AnimusDisplayer::cameraZoomStep * (float)deltaX;
+			if (deltaX > 0 && glm::length(resultPosition - currentPosition) + AnimusDisplayer::cameraZoomLimit >= glm::length(currentCenter - currentPosition))//closing in && longer
+			{
+				resultPosition = currentPosition;
+			}
 			resultCenter = currentCenter;
 			break;
 		default:
@@ -241,10 +258,7 @@ void AnimusDisplayer::mouseMotion(int x, int y)
 		AnimusDisplayer::mouseLastY = y;
 		AnimusDisplayer::lCamera.position = resultPosition;
 		AnimusDisplayer::lCamera.center = resultCenter;
-		if (resultPosition.x * currentPosition.x < 0 && resultPosition.z * currentPosition.z < 0)
-		{
-			AnimusDisplayer::lCamera.up = -AnimusDisplayer::lCamera.up;
-		}
+		
 		AnimusDisplayer::mustUpdatePVM = true;
 	}
 }

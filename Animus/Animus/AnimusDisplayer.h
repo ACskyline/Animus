@@ -34,6 +34,7 @@ private:
 	static float cameraPanStep;
 	static float cameraOrbitStep;
 	static float cameraZoomStep;
+	static float cameraZoomLimit;
 	static bool mustUpdatePVM;
 public:
 	static AnimusMaterialNode lMat;
@@ -41,7 +42,8 @@ public:
 	static AnimusTransformNode lTransformM;
 	static AnimusCameraNode lCamera;
 	static AnimusLightNode lLight;
-	static AnimusAnimationNode lAnim;
+	static AnimusAnimationNode lAnim0;
+	static AnimusAnimationNode lAnim1;
 	static AnimusMarkerNode lGrid;
 	static AnimusMarkerNode lAxis;
 

@@ -47,13 +47,14 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	if (AnimusDisplayer::lAnim.loadFbxAnimation("cowboy_ascii_-zfyu.fbx", 0) != 0)
+	if (AnimusDisplayer::lAnim0.loadFbxAnimation("cowboy_ascii_-zfyu.fbx", 0) != 0)
 	{
-		printf("fubar\n");
+		printf("fubar0\n");
 	}
-	else
+
+	if (AnimusDisplayer::lAnim1.loadFbxAnimation("cowboy_ascii_-zfyu.fbx", 1) != 0)
 	{
-		AnimusDisplayer::lAnim.printAll("debug.txt");
+		printf("fubar1\n");
 	}
 
 	if (AnimusDisplayer::lMesh.loadFbxMeshNoSRT("cowboy_ascii_-zfyu.fbx") != 0)
@@ -62,7 +63,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
+		//printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
 	}
 
 	if (AnimusDisplayer::lIMesh.loadFbxMeshNoSRT("cowboy_ascii_-zfyu.fbx") != 0)
@@ -71,7 +72,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
+		//printf("AnimusIndexCount: %d\nAnimusVertexCount: %d\nAnimusNormalCount: %d\nAnimusTexcoordCount: %d\n", AnimusDisplayer::lMesh.AI.size(), AnimusDisplayer::lMesh.V.size(), AnimusDisplayer::lMesh.N.size(), AnimusDisplayer::lMesh.T.size());
 	}
 
 	AnimusDisplayer::mainLoop(argc, argv);

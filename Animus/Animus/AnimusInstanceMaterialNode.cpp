@@ -5,12 +5,50 @@ AnimusInstanceMaterialNode::AnimusInstanceMaterialNode(int _textureCount)
 	setNodeType(AnimusNodeType::InstanceMaterial);
 
 	textureCount = _textureCount;
+	
 	textures = new gli::texture[textureCount];
 	TEXs = new GLuint[textureCount];
 	program = 0;
 	vert = 0;
 	frag = 0;
 	vertexColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	vertSrc = 0;
+	fragSrc = 0;
+
+	boneCount = 0;
+	frameCount = 0;
+}
+
+
+AnimusInstanceMaterialNode::~AnimusInstanceMaterialNode()
+{
+}
+
+//load first, then set up after glutInit
+void AnimusInstanceMaterialNode::glSetUp( const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1)
+{
+	glSetUpShader(pAnim0->bones.size(), pAnim0->length);
+	glGenTextures(textureCount, TEXs);
+	for (int i = 0; i < textureCount; ++i)
+	{
+		glSetUpTexture(i);
+	}
+	glGenBuffers(2, TBOs);
+	glGenTextures(2, TBTEXs);
+	glSetUpTexBuffer(pAnim0, 0);
+	glSetUpTexBuffer(pAnim1, 1);
+	glSetUpUniforms(PV, LightDirection, pAnim0, pAnim1);
+}
+
+void AnimusInstanceMaterialNode::glSetUpShader(int _boneCount, int _frameCount)
+{
+	boneCount = _boneCount;
+	frameCount = _frameCount;
+
+	GLint maxTexel(0);
+	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTexel);
+	//printf("maxTexel: %d\n", maxTexel);
 
 	vertSrc = "#version 450 core\n"
 		"in vec4 vPosition;"
@@ -22,18 +60,57 @@ AnimusInstanceMaterialNode::AnimusInstanceMaterialNode(int _textureCount)
 		"};"
 		"out vec4 fColor;"
 		"out vec2 fTexcoord;"
-		"uniform mat4 PV;"//different from normal material
-		"in mat4 vMatrix;"//different from normal material
+		"uniform mat4 PV;"//different from un-instanced material CONSTANT
+		"in mat4 vMatrix;"//different from un-instanced material PRE-INSTANCE
+		"in int frame;"//newly added PRE-INSTANCE
+		"in int anim;"//newly added PRE-INSTANCE new new new
+		"in vec4 boneWeight;"//newly added PRE-VERTEX
+		"in ivec4 boneIndex;"//newly added PRE-VERTEX
 		"uniform vec4 vColor;"
 		"uniform vec4 LightDirection;"
+		"uniform samplerBuffer boneTex0;"//newly added CONSTANT
+		"uniform samplerBuffer boneTex1;"//newly added CONSTANT
+		"uniform int frameMax0;"////newly added CONSTANT
+		"uniform int frameMax1;"////newly added CONSTANT
 		"void main(void)"
 		"{"
-		"gl_Position = PV * vMatrix * vPosition;"
+		"mat4 finalTransform = mat4(0);"
+		"for(int i = 0;i<4;i++)"
+		"{"
+		"int index;"
+		"float weight;"
+		"switch(i)"
+		"{"
+		"case 0: index = boneIndex.x; weight = boneWeight.x; break;"
+		"case 1: index = boneIndex.y; weight = boneWeight.y; break;"
+		"case 2: index = boneIndex.z; weight = boneWeight.z; break;"
+		"case 3: index = boneIndex.w; weight = boneWeight.w; break;"
+		"}"
+		"vec4 row1, row2, row3, row4;"
+		"if(anim==0)"
+		"{"
+		"row1 = texelFetch(boneTex0, index * frameMax0 * 4 + frame * 4 + 0);"
+		"row2 = texelFetch(boneTex0, index * frameMax0 * 4 + frame * 4 + 1);"
+		"row3 = texelFetch(boneTex0, index * frameMax0 * 4 + frame * 4 + 2);"
+		"row4 = texelFetch(boneTex0, index * frameMax0 * 4 + frame * 4 + 3);"
+		"}"
+		"else"
+		"{"
+		"row1 = texelFetch(boneTex1, index * frameMax1 * 4 + frame * 4 + 0);"
+		"row2 = texelFetch(boneTex1, index * frameMax1 * 4 + frame * 4 + 1);"
+		"row3 = texelFetch(boneTex1, index * frameMax1 * 4 + frame * 4 + 2);"
+		"row4 = texelFetch(boneTex1, index * frameMax1 * 4 + frame * 4 + 3);"
+		"}"
+		"mat4 boneTransform = weight * transpose(mat4(row1, row2, row3, row4));"
+		"finalTransform += boneTransform;"
+		"}"
+		"gl_Position = PV * vMatrix * finalTransform * vPosition;"
 		"vec3 worldLight = normalize(LightDirection.xyz);"
 		"vec3 worldNormal = normalize(mat3(vMatrix) * vNormal);"
-		"fColor = vColor * (0.5 * dot(worldNormal, worldLight) + 0.5);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
+		"fColor = vec4(vColor.xyz * (0.5 * dot(worldNormal, worldLight) + 0.5), vColor.w);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
 		"fTexcoord = vTexcoord;"
 		"}";
+
 	fragSrc = "#version 450 core\n"
 		"in vec4 fColor;"
 		"in vec2 fTexcoord;"
@@ -44,29 +121,56 @@ AnimusInstanceMaterialNode::AnimusInstanceMaterialNode(int _textureCount)
 		"vec2 realTexcoord = vec2(fTexcoord.s, 1.0 - fTexcoord.t);"//shiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiit,dds picture use filpped UV coordinates
 		"color = fColor * texture(Tex0, realTexcoord);"
 		"}";
-}
 
+	vert = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vert, 1, &vertSrc, 0);
+	glCompileShader(vert);
 
-AnimusInstanceMaterialNode::~AnimusInstanceMaterialNode()
-{
-}
-
-//load first, then set up after glutInit
-void AnimusInstanceMaterialNode::glSetUp(const glm::mat4 &PV, const glm::vec4 &LightDirection)
-{
-	glSetUpShader();
-	glGenTextures(textureCount, TEXs);
-	for (int i = 0; i < textureCount; ++i)
+	GLint result;
+	glGetShaderiv(vert, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE)
 	{
-		glSetUpTexture(i);
+		printf("vert compile failed\n");
+		char log[ShaderInfoLogLength];
+		glGetShaderInfoLog(vert, ShaderInfoLogLength, 0, log);
+		printf("%s", log);
 	}
-	glSetUpUniforms(PV, LightDirection);
+
+	frag = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(frag, 1, &fragSrc, 0);
+	glCompileShader(frag);
+
+	glGetShaderiv(frag, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE)
+	{
+		printf("frag compile failed\n");
+		char log[ShaderInfoLogLength];
+		glGetShaderInfoLog(frag, ShaderInfoLogLength, 0, log);
+		printf("%s", log);
+	}
+
+	program = glCreateProgram();
+	glAttachShader(program, vert);
+	glAttachShader(program, frag);
+	glLinkProgram(program);
+
+	glGetProgramiv(program, GL_LINK_STATUS, &result);
+	if (result == GL_FALSE)
+	{
+		printf("program link failed\n");
+		char log[ShaderInfoLogLength];
+		glGetProgramInfoLog(program, ShaderInfoLogLength, 0, log);
+		printf("%s", log);
+	}
+
+	glUseProgram(program);//
 }
 
-void AnimusInstanceMaterialNode::glSetUpUniforms(const glm::mat4 &PV, const glm::vec4 &LightDirection)
+void AnimusInstanceMaterialNode::glSetUpUniforms(const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode  *pAnim1)
 {
 	//outside uniforms
 	GLint matrix = glGetUniformLocation(program, "PV");
+	//printf("PV: %d\n", matrix);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, &PV[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
 
 	GLint lightDirection = glGetUniformLocation(program, "LightDirection");//
@@ -82,45 +186,20 @@ void AnimusInstanceMaterialNode::glSetUpUniforms(const glm::mat4 &PV, const glm:
 		glUniform1i(Tex, i);
 	}
 
+	GLint boneTex0 = glGetUniformLocation(program, "boneTex0");
+	glUniform1i(boneTex0, textureCount);
+
+	GLint boneTex1 = glGetUniformLocation(program, "boneTex1");
+	glUniform1i(boneTex1, textureCount+1);
+
+	GLint frameMax0 = glGetUniformLocation(program, "frameMax0");
+	glUniform1i(frameMax0, pAnim0->length);
+
+	GLint frameMax1 = glGetUniformLocation(program, "frameMax1");
+	glUniform1i(frameMax1, pAnim1->length);
+
 	GLint color = glGetUniformLocation(program, "vColor");
 	glUniform4fv(color, 1, &vertexColor[0]);//second parameter indicates the number of targeted vector, not the number of components in your vector!!!!!!
-}
-
-void AnimusInstanceMaterialNode::glSetUpShader()
-{
-	vert = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vert, 1, &vertSrc, 0);
-	glCompileShader(vert);
-
-	GLint result;
-	glGetShaderiv(vert, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE)
-	{
-		printf("vert compile failed\n");
-	}
-
-	frag = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(frag, 1, &fragSrc, 0);
-	glCompileShader(frag);
-
-	glGetShaderiv(frag, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE)
-	{
-		printf("frag compile failed\n");
-	}
-
-	program = glCreateProgram();
-	glAttachShader(program, vert);
-	glAttachShader(program, frag);
-	glLinkProgram(program);
-
-	glGetProgramiv(program, GL_LINK_STATUS, &result);
-	if (result == GL_FALSE)
-	{
-		printf("program link failed\n");
-	}
-
-	glUseProgram(program);//
 }
 
 void AnimusInstanceMaterialNode::glSetUpTexture(int index)
@@ -204,6 +283,41 @@ void AnimusInstanceMaterialNode::glUpdatePV(const glm::mat4 &PV)
 	glUseProgram(program);
 	GLint matrix = glGetUniformLocation(program, "PV");
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, &PV[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
+}
+
+void AnimusInstanceMaterialNode::glSetUpTexBuffer(AnimusAnimationNode *pAnim, int slot)//
+{
+	int boneCount = pAnim->bones.size();
+	int animLength = pAnim->length;
+
+	int vecCount = RowPerMatrix * boneCount * animLength;
+	int size = sizeof(glm::vec4) * vecCount;
+	glm::vec4 *bufferData = new glm::vec4[vecCount];
+
+	for (int i = 0; i < boneCount; ++i)
+	{
+		for (int j = 0; j < animLength; ++j)
+		{
+			glm::mat4 boneMat = pAnim->bones[i].animation[j].globalTransform * pAnim->bones[i].globalBindposeInverse;
+			int vecNum = i * animLength * RowPerMatrix + j * RowPerMatrix;
+			for (int k = 0; k < RowPerMatrix; ++k)
+			{
+				bufferData[vecNum + k] = glm::vec4(boneMat[0][k], boneMat[1][k], boneMat[2][k], boneMat[3][k]);
+			}
+		}
+	}
+
+	glBindBuffer(GL_TEXTURE_BUFFER, TBOs[slot]);
+	glBufferData(GL_TEXTURE_BUFFER, size, &bufferData[0][0], GL_STATIC_DRAW);
+	
+
+	glActiveTexture(GL_TEXTURE0 + textureCount + slot);//TextureCount is the num of usual 2D textures used in shader, it does not include texture used by texture buffer. Thus the new texture unit is GL_TEXTURE0 + textureCount.
+	glBindTexture(GL_TEXTURE_BUFFER, TBTEXs[slot]);
+	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, TBOs[slot]);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+	delete[] bufferData;
 }
 
 int AnimusInstanceMaterialNode::loadDdsTex(char* _filename, int index)

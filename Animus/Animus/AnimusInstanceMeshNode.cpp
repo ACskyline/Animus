@@ -1,6 +1,5 @@
 #include "AnimusInstanceMeshNode.h"
 
-
 AnimusInstanceMeshNode::AnimusInstanceMeshNode()
 {
 	setNodeType(AnimusNodeType::Mesh);
@@ -16,7 +15,14 @@ AnimusInstanceMeshNode::AnimusInstanceMeshNode()
 	vertexIndexCount = 0;
 
 	instanceTransformMatrices = 0;
+	instanceFrame = 0;
+	instanceAnim = 0;
 	instanceCount = 0;
+
+	radius = 500;
+	center = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	srand(unsigned(time(0)));
 }
 
 AnimusInstanceMeshNode::~AnimusInstanceMeshNode()
@@ -44,6 +50,16 @@ AnimusInstanceMeshNode::~AnimusInstanceMeshNode()
 	if (instanceTransformMatrices != 0)
 	{
 		delete[] instanceTransformMatrices;
+	}
+
+	if (instanceFrame != 0)
+	{
+		delete[] instanceFrame;
+	}
+
+	if (instanceAnim != 0)
+	{
+		delete[] instanceAnim;
 	}
 }
 
@@ -912,12 +928,53 @@ int AnimusInstanceMeshNode::loadFbxMeshAll(char* fileName)
 	return 0;
 }
 
-void AnimusInstanceMeshNode::glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, GLint position, GLint normal, GLint texcoord, GLint vMatrix)
+void AnimusInstanceMeshNode::glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, AnimusAnimationNode *lAnim, GLint position, GLint normal, GLint texcoord, GLint boneW, GLint boneI, GLint vMatrix, GLint frame, GLint anim)
 {
 	glSetUpMesh();
 	glSetUpInstances(_instanceCount, translation, stride);
-	glSetUpBuffers();
-	glSetUpAttribs(position, normal, texcoord, vMatrix);
+	glSetUpBuffers(lAnim);
+	glSetUpAttribs(position, normal, texcoord, boneW, boneI, vMatrix, frame, anim);
+}
+
+void AnimusInstanceMeshNode::glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &strideX, const glm::vec3 &strideY, AnimusAnimationNode *lAnim, GLint position, GLint normal, GLint texcoord, GLint boneW, GLint boneI, GLint vMatrix, GLint frame, GLint anim)
+{
+	glSetUpMesh();
+	glSetUpInstances(_instanceCount, translation, strideX, strideY);
+	glSetUpBuffers(lAnim);
+	glSetUpAttribs(position, normal, texcoord, boneW, boneI, vMatrix, frame, anim);
+}
+
+void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &strideX, const glm::vec3 &strideY)
+{
+	instanceCount = _instanceCount;
+	instanceVector.resize(instanceCount);
+	instanceFrame = new int[instanceCount];
+	instanceAnim = new int[instanceCount];
+	instanceTransformMatrices = new glm::mat4[instanceCount];
+	int sqrt = glm::sqrt(_instanceCount);
+
+	for (int i = 0; i < instanceCount; ++i)
+	{
+		instanceFrame[i] = 0;
+		instanceAnim[i] = static_cast<int>(AnimusInstanceState::Walk);
+		instanceVector[i].position = translation + (float)(i/sqrt)*strideX + (float)(i%sqrt)*strideY;
+	}
+}
+
+void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride)
+{
+	instanceCount = _instanceCount;
+	instanceVector.resize(instanceCount);
+	instanceFrame = new int[instanceCount];
+	instanceAnim = new int[instanceCount];
+	instanceTransformMatrices = new glm::mat4[instanceCount];
+	
+	for (int i = 0; i < instanceCount; ++i)
+	{
+		instanceFrame[i] = 0;
+		instanceAnim[i] = static_cast<int>(AnimusInstanceState::Walk);
+		instanceVector[i].position = translation + stride * (float)i;
+	}
 }
 
 //load first, then set up after glutInit
@@ -1011,22 +1068,68 @@ void AnimusInstanceMeshNode::glSetUpMesh()
 }
 
 //after glSetUpMesh
-void AnimusInstanceMeshNode::glSetUpBuffers()
+void AnimusInstanceMeshNode::glSetUpBuffers(AnimusAnimationNode * lAnim)
 {
-	glGenBuffers(1, VBOs);
+	glGenBuffers(3, VBOs);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(GLfloat) * vertexCount * 4 +
 		sizeof(GLfloat) * vertexCount * 3 +
-		sizeof(GLfloat) * vertexCount * 2 +
-		sizeof(GLfloat) * instanceCount * 16,
-		0, GL_STATIC_DRAW);//
+		sizeof(GLfloat) * vertexCount * 2,
+		0, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertexCount * 4, &(vertexPositions[0][0]));
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4, sizeof(GLfloat) * vertexCount * 3, &(vertexNormals[0][0]));//
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4, sizeof(GLfloat) * vertexCount * 3, &(vertexNormals[0][0]));
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, sizeof(GLfloat) * vertexCount * 2, &(vertexTexcoords[0][0]));
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3 + sizeof(GLfloat) * vertexCount * 2, sizeof(GLfloat) * instanceCount * 16, &(instanceTransformMatrices[0][0][0]));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//instanced attribs are in a different buffer now
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(GLfloat) * instanceCount * 16 +
+		sizeof(GLint) * instanceCount * 1 +
+		sizeof(GLint) * instanceCount * 1,
+		0, GL_STATIC_DRAW);//
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * instanceCount * 16, &(instanceTransformMatrices[0][0][0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16, sizeof(GLint) * instanceCount * 1, &(instanceFrame[0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16 + sizeof(GLint) * instanceCount * 1, sizeof(GLint) * instanceCount * 1, &(instanceAnim[0]));//
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	////////////////////////////
+	//animation-related attribs are in a different buffer now
+	glm::vec4* boneWeight = new glm::vec4[vertexCount];
+	glm::ivec4* boneIndex = new glm::ivec4[vertexCount];
+
+	for (int i = 0; i < vertexCount; ++i)
+	{
+		int controlIndex = AI[i].CI;
+		int boneI[4];
+		float boneW[4];
+			
+		int size = lAnim->controlPoints[controlIndex].weights.size();
+		for (int j = 0; j < 4; ++j)
+		{
+			boneW[j] = j < size ? lAnim->controlPoints[controlIndex].weights[j].weight : 0.0f;
+			boneI[j] = j < size ? lAnim->controlPoints[controlIndex].weights[j].boneIndex : 0;
+		}
+
+		boneWeight[i] = glm::vec4(boneW[0], boneW[1], boneW[2], boneW[3]);
+		boneIndex[i] = glm::ivec4(boneI[0], boneI[1], boneI[2], boneI[3]);
+
+		//printf("%f,%f,%f,%f\n%d,%d,%d,%d\n", boneW[0], boneW[1], boneW[2], boneW[3], boneI[0], boneI[1], boneI[2], boneI[3]);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(GLfloat) * vertexCount * 4 +
+		sizeof(GLint) * vertexCount * 4,
+		0, GL_STATIC_DRAW);//
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertexCount * 4, &(boneWeight[0][0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4, sizeof(GLint) * vertexCount * 4, &(boneIndex[0][0]));//
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	delete[] boneWeight;
+	delete[] boneIndex;
+	/////////////////////////////
 
 	glGenBuffers(1, EBOs);
 
@@ -1036,157 +1139,207 @@ void AnimusInstanceMeshNode::glSetUpBuffers()
 }
 
 //after glSetUpBuffers
-void AnimusInstanceMeshNode::glSetUpAttribs(GLint _position, GLint _normal, GLint _texcoord, GLint _vMatrix)
+void AnimusInstanceMeshNode::glSetUpAttribs(GLint _position, GLint _normal, GLint _texcoord, GLint _boneW, GLint _boneI, GLint _vMatrix, GLint _frame, GLint _anim)
 {
+	int bindingIndex = 0;
+	int offset = 0;
+
 	position = _position;
 	normal = _normal;
 	texcoord = _texcoord;
+	boneW = _boneW;
+	boneI = _boneI;
+
 	vMatrix = _vMatrix;
+	frame = _frame;
+	anim = _anim;
 
 	glGenVertexArrays(1, VAOs);
 
 	glBindVertexArray(VAOs[0]);
 
 	glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(position, 0);//set binding index
+	glVertexAttribBinding(position, bindingIndex);//set binding index
 	glEnableVertexAttribArray(position);
-	glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
+	glBindVertexBuffer(bindingIndex, VBOs[0], offset, 4 * sizeof(GLfloat));//use binding index
+	bindingIndex++;
+	offset += sizeof(GLfloat) * vertexCount * 4;
 
 	glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(normal, 1);//set binding index
+	glVertexAttribBinding(normal, bindingIndex);//set binding index
 	glEnableVertexAttribArray(normal);
-	glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
+	glBindVertexBuffer(bindingIndex, VBOs[0], offset, 3 * sizeof(GLfloat));//use binding index
+	bindingIndex++;
+	offset += sizeof(GLfloat) * vertexCount * 3;
 
 	glVertexAttribFormat(texcoord, 2, GL_FLOAT, GL_FALSE, 0);
-	glVertexAttribBinding(texcoord, 2);//set binding index
+	glVertexAttribBinding(texcoord, bindingIndex);//set binding index
 	glEnableVertexAttribArray(texcoord);
-	glBindVertexBuffer(2, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 2 * sizeof(GLfloat));//use binding index
+	glBindVertexBuffer(bindingIndex, VBOs[0], offset, 2 * sizeof(GLfloat));//use binding index
+	bindingIndex++;
+	offset = 0;
 
+	//instanced attribs are in a different buffer now
 	for (int i = 0; i < 4; ++i)
 	{
 		glVertexAttribFormat(vMatrix + i, 4, GL_FLOAT, GL_FALSE, 0);
-		glVertexAttribBinding(vMatrix + i, 3 + i);//set binding index
+		glVertexAttribBinding(vMatrix + i, i + bindingIndex);//set binding index
 		glEnableVertexAttribArray(vMatrix + i);
-		glBindVertexBuffer(3 + i, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3 + sizeof(GLfloat) * vertexCount * 2 + sizeof(GLfloat) * i * 4, 16 * sizeof(GLfloat));//use binding index
-		glVertexAttribDivisor(vMatrix + i, 1);
+		glBindVertexBuffer(i + bindingIndex, VBOs[1], offset + sizeof(GLfloat) * i * 4, 16 * sizeof(GLfloat));//use binding index
+		glVertexAttribDivisor(vMatrix + i, 1);//marked as instanced
 	}
+	bindingIndex += 4;
+	offset += sizeof(GLfloat) * instanceCount * 16;
+
+	glVertexAttribIFormat(frame, 1, GL_INT, 0);
+	glVertexAttribBinding(frame, bindingIndex);//set binding index
+	glEnableVertexAttribArray(frame);
+	glBindVertexBuffer(bindingIndex, VBOs[1], offset, 1 * sizeof(GLint));//use binding index
+	glVertexAttribDivisor(frame, 1);//marked as instanced
+	bindingIndex++;
+	offset += sizeof(GLint) * instanceCount * 1;
+
+	glVertexAttribIFormat(anim, 1, GL_INT, 0);
+	glVertexAttribBinding(anim, bindingIndex);//set binding index
+	glEnableVertexAttribArray(anim);
+	glBindVertexBuffer(bindingIndex, VBOs[1], offset, 1 * sizeof(GLint));//use binding index
+	glVertexAttribDivisor(anim, 1);//marked as instanced
+	bindingIndex++;
+	offset = 0;
+
+	////////////////////////////////////////
+	//animation-related attribs
+	glVertexAttribFormat(boneW, 4, GL_FLOAT, GL_FALSE, 0);
+	glVertexAttribBinding(boneW, bindingIndex);//set binding index
+	glEnableVertexAttribArray(boneW);
+	glBindVertexBuffer(bindingIndex, VBOs[2], offset, 4 * sizeof(GLfloat));//use binding index
+	bindingIndex++;
+	offset += sizeof(GLfloat) * vertexCount * 4;
+
+	glVertexAttribIFormat(boneI, 4, GL_INT, 0);
+	glVertexAttribBinding(boneI, bindingIndex);//set binding index
+	glEnableVertexAttribArray(boneI);
+	glBindVertexBuffer(bindingIndex, VBOs[2], offset, 4 * sizeof(GLint));//use binding index
+	bindingIndex++;
+	offset += sizeof(GLint) * vertexCount * 4;
+	////////////////////////////////////////
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
 	glBindVertexArray(0);
 }
 
-void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride)
+void AnimusInstanceMeshNode::glUpdate(AnimusAnimationNode* AANode0, AnimusAnimationNode *AANode1)//AANode0 is for walk, AANode1 is for idle
 {
-	instanceCount = _instanceCount;
-	instanceTransformMatrices = new glm::mat4[instanceCount];
-	
+	glUpdateInstances(AANode0->length, AANode1->length);
+	glUpdateInstanceBuffer();
+}
+
+void AnimusInstanceMeshNode::glUpdateInstances(int animLength0, int animLength1)//animLength0 is for walk, animLength1 is for idle
+{
 	for (int i = 0; i < instanceCount; ++i)
 	{
-		instanceTransformMatrices[i] = glm::translate(glm::mat4(), translation + stride * (float)i);
-	}
-}
-
-void AnimusInstanceMeshNode::glUpdate(int frame, AnimusAnimationNode* AANode)
-{
-	glUpdateMesh(frame, AANode);
-	glUpdateBuffers();
-}
-
-void AnimusInstanceMeshNode::glUpdateQuick(int frame, AnimusAnimationNode* AANode)
-{
-	glUpdateMeshQuick(frame, AANode);
-	glUpdateBuffers();
-}
-
-void AnimusInstanceMeshNode::glUpdateMesh(int frame, AnimusAnimationNode* AANode)
-{
-	vertexCount = 0;
-
-	for (int i = 0; i < vertexIndexCount; ++i)
-	{
-
-		// if a vertex does not have a VI, TI or NI, it will be set to (1, 1, 1, 1), (1, 1, 1) or (1, 1)
-		glm::vec4 newPosition = AI[i].VI >= 0 && AI[i].VI < V.size() ? V[AI[i].VI] : glm::vec4(1, 1, 1, 1);
-		//glm::vec2 newTexcoord = AI[i].TI >= 0 && AI[i].TI < T.size() ? T[AI[i].TI] : glm::vec2(1, 1);
-		glm::vec3 newNormal = AI[i].NI >= 0 && AI[i].NI < N.size() ? N[AI[i].NI] : glm::vec3(1, 1, 1);
-
-		glm::mat4x4 transform = glm::mat4x4
-			(0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0);
-		int weightSize = AANode->controlPoints[AI[i].CI].weights.size();
-		for (int j = 0; j < weightSize; ++j)
+		switch (instanceVector[i].state)
 		{
-			int boneIndex = AANode->controlPoints[AI[i].CI].weights[j].boneIndex;
-			float weight = AANode->controlPoints[AI[i].CI].weights[j].weight;
-			glm::mat4x4 transformTemp = frame >= 0 && frame < AANode->length ? AANode->bones[boneIndex].animation[frame].globalTransform * AANode->bones[boneIndex].globalBindposeInverse : glm::mat4();
-			transform = transform + transformTemp * weight;
-		}
-		newPosition = transform * newPosition;
-		newNormal = transform * glm::vec4(newNormal, 0.0); 
-
-		vertexPositions[vertexCount] = newPosition;
-		vertexNormals[vertexCount] = newNormal;
-		vertexIndices[i] = vertexCount;
-		vertexCount++;
-	}
-}
-
-void AnimusInstanceMeshNode::glUpdateMeshQuick(int frame, AnimusAnimationNode* AANode)
-{
-	vertexCount = 0;
-	std::vector<AnimusControlPointPostion> temp;
-	temp.resize(AANode->controlPoints.size());
-
-	for (int i = 0; i < vertexIndexCount; ++i)
-	{
-		glm::vec4 newPosition;
-		glm::vec3 newNormal = AI[i].NI >= 0 && AI[i].NI < N.size() ? N[AI[i].NI] : glm::vec3(1, 1, 1);
-		glm::mat4x4 transform = glm::mat4x4
-			(0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0);
-
-		if (temp[AI[i].CI].ready)//if we have already calculated this control point once for this frame, then use the result directly
-		{
-			transform = temp[AI[i].CI].positionMatrix;
-			newPosition = temp[AI[i].CI].position;
-		}
-		else//else we have not calculated this control point, then we calculate it
-		{
-			newPosition = AI[i].VI >= 0 && AI[i].VI < V.size() ? V[AI[i].VI] : glm::vec4(1, 1, 1, 1);
-			int weightSize = AANode->controlPoints[AI[i].CI].weights.size();
-			for (int j = 0; j < weightSize; ++j)
+		case AnimusInstanceState::Walk:
+			if (instanceVector[i].frameBeforeChange > 0)//continue
 			{
-				int boneIndex = AANode->controlPoints[AI[i].CI].weights[j].boneIndex;
-				float weight = AANode->controlPoints[AI[i].CI].weights[j].weight;
-				glm::mat4x4 transformTemp = frame >= 0 && frame < AANode->length ? AANode->bones[boneIndex].animation[frame].globalTransform * AANode->bones[boneIndex].globalBindposeInverse : glm::mat4();
-				transform = transform + transformTemp * weight;
+				instanceVector[i].frameBeforeChange--;
+				instanceFrame[i] = ++instanceFrame[i] % animLength0;
 			}
-			newPosition = transform * newPosition;
-
-			temp[AI[i].CI].positionMatrix = transform;
-			temp[AI[i].CI].position = newPosition;
-			temp[AI[i].CI].ready = true;
+			else//new decision
+			{
+				glm::vec3 dir = center - instanceVector[i].position;
+				float length = glm::length(dir);
+				if (length > radius)//out of the circle
+				{
+					instanceVector[i].frameBeforeChange = FRAME_BEFORE_CHANGE_MULTIPLE * FRAME_BEFORE_CHANGE_FACTOR;
+					instanceVector[i].speed = SPEED_MULTIPLE * SPEED_FACTOR;
+					instanceVector[i].direction = glm::normalize(dir);
+					instanceFrame[i] = ++instanceFrame[i] % animLength0;
+				}
+				else//in the circle
+				{
+					int chance = rand() % 2;
+					if (chance == 0)//idle
+					{
+						instanceVector[i].frameBeforeChange = rand() % (FRAME_BEFORE_CHANGE_MULTIPLE_IDLE * FRAME_BEFORE_CHANGE_FACTOR);
+						instanceVector[i].state = AnimusInstanceState::Idle;
+						instanceAnim[i] = static_cast<int>(AnimusInstanceState::Idle);
+						instanceFrame[i] = 0;
+					}
+					else//no idle, continue
+					{
+						instanceVector[i].frameBeforeChange = rand() % (FRAME_BEFORE_CHANGE_MULTIPLE * FRAME_BEFORE_CHANGE_FACTOR);
+						instanceVector[i].speed = (rand() % SPEED_MULTIPLE + 1) * SPEED_FACTOR;
+						instanceVector[i].direction = glm::normalize(glm::vec3(2 * ((float)rand() / (float)RAND_MAX - 0.5), 0.0f, 2 * ((float)rand() / (float)RAND_MAX - 0.5)));
+						instanceFrame[i] = ++instanceFrame[i] % animLength0;
+					}
+				}
+			}
+			calInstanceTransformMatrices(i);
+			break;
+		case AnimusInstanceState::Idle:
+			if (instanceVector[i].frameBeforeChange > 0)//continue
+			{
+				instanceVector[i].frameBeforeChange--;
+				instanceFrame[i] = ++instanceFrame[i] % animLength1;
+			}
+			else//new decision
+			{
+				glm::vec3 dir = center - instanceVector[i].position;
+				float length = glm::length(dir);
+				if (length > radius)//out of the circle
+				{
+					instanceVector[i].frameBeforeChange = FRAME_BEFORE_CHANGE_MULTIPLE * FRAME_BEFORE_CHANGE_FACTOR;
+					instanceVector[i].speed = SPEED_MULTIPLE * SPEED_FACTOR;
+					instanceVector[i].direction = glm::normalize(dir);;
+					instanceVector[i].state = AnimusInstanceState::Walk;
+					instanceAnim[i] = static_cast<int>(AnimusInstanceState::Walk);
+					instanceFrame[i] = 0;
+				}
+				else//in the circle
+				{
+					instanceVector[i].frameBeforeChange = rand() % (FRAME_BEFORE_CHANGE_MULTIPLE * FRAME_BEFORE_CHANGE_FACTOR);
+					instanceVector[i].speed = (rand() % SPEED_MULTIPLE + 1) * SPEED_FACTOR;
+					instanceVector[i].direction = glm::normalize(glm::vec3(2 * ((float)rand() / (float)RAND_MAX - 0.5), 0.0f, 2 * ((float)rand() / (float)RAND_MAX - 0.5)));
+					instanceVector[i].state = AnimusInstanceState::Walk;
+					instanceAnim[i] = static_cast<int>(AnimusInstanceState::Walk);
+					instanceFrame[i] = 0;
+				}
+			}
+			break;
+		default:
+			break;
 		}
 
-		newNormal = transform * glm::vec4(newNormal, 0.0);
-
-		vertexPositions[vertexCount] = newPosition;
-		vertexNormals[vertexCount] = newNormal;
-		vertexIndices[i] = vertexCount;
-		vertexCount++;
 
 	}
 }
 
-//glUpdateBuffers only update positions and normals
-void AnimusInstanceMeshNode::glUpdateBuffers()
+void AnimusInstanceMeshNode::glUpdateInstanceBuffer()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * vertexCount * 4, &(vertexPositions[0][0]));
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertexCount * 4, sizeof(GLfloat) * vertexCount * 3, &(vertexNormals[0][0]));
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	//glBufferData(GL_ARRAY_BUFFER,
+	//	sizeof(GLfloat) * instanceCount * 16 +
+	//	sizeof(GLint) * instanceCount * 1,
+	//	0, GL_STATIC_DRAW);//
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * instanceCount * 16, &(instanceTransformMatrices[0][0][0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16, sizeof(GLint) * instanceCount * 1, &(instanceFrame[0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16 + sizeof(GLint) * instanceCount * 1, sizeof(GLint) * instanceCount * 1, &(instanceAnim[0]));
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void AnimusInstanceMeshNode::calInstanceTransformMatrices(int index)
+{
+	instanceVector[index].position = instanceVector[index].position + instanceVector[index].direction * instanceVector[index].speed;
+
+	glm::vec3 front = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 newFront3 = instanceVector[index].direction;
+	float radius = glm::acos(glm::dot(front, newFront3));
+	glm::vec3 axis = glm::cross(front, newFront3);
+
+	instanceTransformMatrices[index] =
+		glm::translate(glm::mat4(), instanceVector[index].position) *
+		glm::rotate(glm::mat4(), radius, axis);//transformation is relative to local coordinates, so the order is inverted
 }

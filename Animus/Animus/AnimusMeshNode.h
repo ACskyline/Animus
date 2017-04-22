@@ -2,7 +2,6 @@
 #include "AnimusNode.h"
 #include "AnimusAnimationNode.h"
 #include "AnimusType.h"
-#include <fbxsdk.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
