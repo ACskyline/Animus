@@ -8,7 +8,7 @@ It is built on Visual Studio 2013. Glew, freeglut and glm are included under the
 The intended OpenGL version is 4.5.
 
 ### Update
-It turns out I am supposed to make a displayer, not an editor and I think I am getting somewhere. Basically I used FBXSDK to read .fbx files and use OpenGL to display it.
+It turns out I am supposed to make a displayer, not an editor and I think I am getting somewhere. Basically I used FBXSDK to read .fbx files and OpenGL to display it.
 To simulate large crowd, I applyed instanced rendering and GPU skinning.
 
 ### Work to do
