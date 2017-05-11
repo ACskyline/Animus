@@ -29,13 +29,15 @@ AnimusMarkerNode::AnimusMarkerNode(AnimusMarkerNodeType _markerNodeType)
 		"color = fColor;"
 		"}";
 
-	gridLineInterval = 10;
+	gridLineInterval = 1;
 	gridLineCount = 101;
 	gridColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-	axisLength = 10;
+	axisLength = 1;
 	axisColorX = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 	axisColorY = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	axisColorZ = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+	circleColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);//new new new
+	circleRadius = 1;//new new new
 }
 
 
@@ -57,7 +59,7 @@ void AnimusMarkerNode::glSetUpMarkerMesh()
 	switch (markerNodeType)
 	{
 	case AnimusMarkerNodeType::Axis:
-		vertexCount = 6;
+		vertexCount = 2 * 3;
 		vertexPositions = new glm::vec4[vertexCount]{
 			glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
 			glm::vec4(1.0f * axisLength, 0.0f, 0.0f, 1.0f),
@@ -94,6 +96,19 @@ void AnimusMarkerNode::glSetUpMarkerMesh()
 
 			vertexColors[i * 2] = gridColor;
 			vertexColors[i * 2 + 1] = gridColor;
+		}
+		break;
+	case AnimusMarkerNodeType::Circle:
+		vertexCount = 2 * CIRCLE_SEGMENT;
+		vertexPositions = new glm::vec4[vertexCount];
+		vertexColors = new glm::vec4[vertexCount];
+		for (int i = 0; i < CIRCLE_SEGMENT; ++i)
+		{
+			vertexPositions[2 * i] = glm::vec4(glm::cos(i * (TWO_PI / CIRCLE_SEGMENT)) * circleRadius, 0.0f, glm::sin(i * (TWO_PI / CIRCLE_SEGMENT)) * circleRadius, 1.0f);
+			vertexPositions[2 * i + 1] = glm::vec4(glm::cos((i + 1) * (TWO_PI / CIRCLE_SEGMENT)) * circleRadius, 0.0f, glm::sin((i + 1) * (TWO_PI / CIRCLE_SEGMENT)) * circleRadius, 1.0f);
+
+			vertexColors[2 * i] = circleColor;
+			vertexColors[2 * i + 1] = circleColor;
 		}
 		break;
 	default:
@@ -148,7 +163,7 @@ void AnimusMarkerNode::glSetUpMarkerShaders()
 	}
 }
 
-void AnimusMarkerNode::glSetUpMarkerUniform(const glm::mat4 &vertexMatrix)
+void AnimusMarkerNode::glSetUpMarkerMatrix(const glm::mat4 &vertexMatrix)
 {
 	//outside uniforms
 	GLint matrix = glGetUniformLocation(program, "vMatrix");
@@ -182,7 +197,7 @@ void AnimusMarkerNode::glSetUpMarker(const glm::mat4 &vertexMatrix)
 	glSetUpMarkerMesh();
 	glSetUpMarkerBuffer();
 	glSetUpMarkerShaders();
-	glSetUpMarkerUniform(vertexMatrix);
+	glSetUpMarkerMatrix(vertexMatrix);
 	GLint position = glGetAttribLocation(program, "vPosition");
 	GLint color = glGetAttribLocation(program, "vColor");
 	glSetUpMarkerAttrib(position, color);

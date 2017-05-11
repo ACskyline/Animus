@@ -1,7 +1,7 @@
 #pragma once
 #include "AnimusNode.h"
 
-enum AnimusCameraState
+enum struct AnimusCameraState
 {
 	Pan, Orbit, Zoom, Idle, AnimusCameraStateCount
 };

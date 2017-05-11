@@ -2,7 +2,7 @@
 
 AnimusInstanceMeshNode::AnimusInstanceMeshNode()
 {
-	setNodeType(AnimusNodeType::Mesh);
+	setNodeType(AnimusNodeType::InstanceMesh);
 	V = std::vector<glm::vec4>();
 	T = std::vector<glm::vec2>();
 	N = std::vector<glm::vec3>();
@@ -21,6 +21,8 @@ AnimusInstanceMeshNode::AnimusInstanceMeshNode()
 
 	radius = 500;
 	center = glm::vec3(0.0f, 0.0f, 0.0f);
+
+	centerControlState = AnimusInstanceCenterControlState::Idle;
 
 	srand(unsigned(time(0)));
 }
@@ -928,6 +930,22 @@ int AnimusInstanceMeshNode::loadFbxMeshAll(char* fileName)
 	return 0;
 }
 
+void AnimusInstanceMeshNode::glResetAll(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, AnimusAnimationNode *lAnim)
+{
+	glSetUpMesh();
+	glSetUpInstances(_instanceCount, translation, stride);
+	glSetUpBuffers(lAnim);
+	glSetUpAttribs(position, normal, texcoord, boneW, boneI, vMatrix, frame, anim);
+}
+
+void AnimusInstanceMeshNode::glResetInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride)
+{
+	//Don't need to reset mesh
+	glSetUpInstances(_instanceCount, translation, stride);
+	glResetInstanceBuffer();//Don't need to reset other buffers
+	glResetInstanceAttribs();//Don't need to reset other Attribs
+}
+
 void AnimusInstanceMeshNode::glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, AnimusAnimationNode *lAnim, GLint position, GLint normal, GLint texcoord, GLint boneW, GLint boneI, GLint vMatrix, GLint frame, GLint anim)
 {
 	glSetUpMesh();
@@ -947,7 +965,20 @@ void AnimusInstanceMeshNode::glSetUp(int _instanceCount, const glm::vec3 &transl
 void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &strideX, const glm::vec3 &strideY)
 {
 	instanceCount = _instanceCount;
+	instanceVector.clear();//
 	instanceVector.resize(instanceCount);
+	if (instanceFrame != 0)
+	{
+		delete[] instanceFrame;
+	}
+	if (instanceAnim != 0)
+	{
+		delete[] instanceAnim;
+	}
+	if (instanceTransformMatrices != 0)
+	{
+		delete[] instanceTransformMatrices;
+	}
 	instanceFrame = new int[instanceCount];
 	instanceAnim = new int[instanceCount];
 	instanceTransformMatrices = new glm::mat4[instanceCount];
@@ -964,16 +995,31 @@ void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec
 void AnimusInstanceMeshNode::glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride)
 {
 	instanceCount = _instanceCount;
+	instanceVector.clear();//
 	instanceVector.resize(instanceCount);
+	if (instanceFrame != 0)
+	{
+		delete [] instanceFrame;
+	}
+	if (instanceAnim != 0)
+	{
+		delete [] instanceAnim;
+	}
+	if (instanceTransformMatrices != 0)
+	{
+		delete[] instanceTransformMatrices;
+	}
 	instanceFrame = new int[instanceCount];
 	instanceAnim = new int[instanceCount];
 	instanceTransformMatrices = new glm::mat4[instanceCount];
+	int sqrt = glm::sqrt(_instanceCount);
 	
+	glm::vec3 strideNew = glm::length(stride) * glm::cross(glm::normalize(stride), glm::vec3(0, 1, 0));
 	for (int i = 0; i < instanceCount; ++i)
 	{
 		instanceFrame[i] = 0;
 		instanceAnim[i] = static_cast<int>(AnimusInstanceState::Walk);
-		instanceVector[i].position = translation + stride * (float)i;
+		instanceVector[i].position = translation + (float)(i / sqrt)*stride + (float)(i%sqrt)*strideNew;
 	}
 }
 
@@ -1322,7 +1368,8 @@ void AnimusInstanceMeshNode::glUpdateInstanceBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
 	//glBufferData(GL_ARRAY_BUFFER,
 	//	sizeof(GLfloat) * instanceCount * 16 +
-	//	sizeof(GLint) * instanceCount * 1,
+	//	sizeof(GLint) * instanceCount * 1 +
+	//  sizeof(GLint) * instanceCount * 1,
 	//	0, GL_STATIC_DRAW);//
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * instanceCount * 16, &(instanceTransformMatrices[0][0][0]));
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16, sizeof(GLint) * instanceCount * 1, &(instanceFrame[0]));
@@ -1342,4 +1389,53 @@ void AnimusInstanceMeshNode::calInstanceTransformMatrices(int index)
 	instanceTransformMatrices[index] =
 		glm::translate(glm::mat4(), instanceVector[index].position) *
 		glm::rotate(glm::mat4(), radius, axis);//transformation is relative to local coordinates, so the order is inverted
+}
+
+void AnimusInstanceMeshNode::glResetInstanceBuffer()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(GLfloat) * instanceCount * 16 +
+		sizeof(GLint) * instanceCount * 1 +
+		sizeof(GLint) * instanceCount * 1,
+		0, GL_STATIC_DRAW);//
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * instanceCount * 16, &(instanceTransformMatrices[0][0][0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16, sizeof(GLint) * instanceCount * 1, &(instanceFrame[0]));
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(GLfloat) * instanceCount * 16 + sizeof(GLint) * instanceCount * 1, sizeof(GLint) * instanceCount * 1, &(instanceAnim[0]));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void AnimusInstanceMeshNode::glResetInstanceAttribs()
+{
+	int bindingIndex = 3;
+	int offset = 0;
+
+	glBindVertexArray(VAOs[0]);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		glVertexAttribFormat(vMatrix + i, 4, GL_FLOAT, GL_FALSE, 0);
+		glVertexAttribBinding(vMatrix + i, i + bindingIndex);//set binding index
+		glEnableVertexAttribArray(vMatrix + i);
+		glBindVertexBuffer(i + bindingIndex, VBOs[1], offset + sizeof(GLfloat) * i * 4, 16 * sizeof(GLfloat));//use binding index
+		glVertexAttribDivisor(vMatrix + i, 1);//marked as instanced
+	}
+	bindingIndex += 4;
+	offset += sizeof(GLfloat) * instanceCount * 16;
+
+	glVertexAttribIFormat(frame, 1, GL_INT, 0);
+	glVertexAttribBinding(frame, bindingIndex);//set binding index
+	glEnableVertexAttribArray(frame);
+	glBindVertexBuffer(bindingIndex, VBOs[1], offset, 1 * sizeof(GLint));//use binding index
+	glVertexAttribDivisor(frame, 1);//marked as instanced
+	bindingIndex++;
+	offset += sizeof(GLint) * instanceCount * 1;
+
+	glVertexAttribIFormat(anim, 1, GL_INT, 0);
+	glVertexAttribBinding(anim, bindingIndex);//set binding index
+	glEnableVertexAttribArray(anim);
+	glBindVertexBuffer(bindingIndex, VBOs[1], offset, 1 * sizeof(GLint));//use binding index
+	glVertexAttribDivisor(anim, 1);//marked as instanced
+
+	glBindVertexArray(0);
 }

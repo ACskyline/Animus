@@ -12,33 +12,32 @@ class AnimusInstanceMaterialNode :
 	public AnimusNode
 {
 private:
-	void glSetUpShader(int _boneCount, int _frameCount);
+	void glSetUpShader();
 	void glSetUpTexture(int index = 0);
-	void glSetUpUniforms(const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1);
+	void glSetUpUniforms(const glm::mat4 &PV, const glm::mat4 &AdjustMatrix, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1);
 	void glSetUpTexBuffer(AnimusAnimationNode *pAnim, int slot);
 public:
 
 	int textureCount;
-	int boneCount;
-	int frameCount;
+	//int boneCount;
+	//int frameCount;
 	gli::texture *textures;
 
-	GLuint TBOs[2];// new new new
-	GLuint TBTEXs[2];//new new new
+	GLuint TBOs[2];// new new new // one for anim0, one for anim1
+	GLuint TBTEXs[2];//new new new // one for anim0, one for anim1
 
 	GLuint *TEXs;
 	GLuint program;
 	GLuint vert;
 	GLuint frag;
 	glm::vec4 vertexColor;
-	//std::string vertStr;
 	const char *vertSrc;
 	const char *fragSrc;
 
 	AnimusInstanceMaterialNode(int _textureCount = 0);
 	~AnimusInstanceMaterialNode();
 
-	void glSetUp(const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1);
+	void glSetUp(const glm::mat4 &PV, const glm::mat4 &AdjustMatrix, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1);
 	void glUpdatePV(const glm::mat4 &PV);
 	int loadDdsTex(char* filename, int index = 0);
 };

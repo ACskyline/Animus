@@ -16,8 +16,8 @@ AnimusInstanceMaterialNode::AnimusInstanceMaterialNode(int _textureCount)
 	vertSrc = 0;
 	fragSrc = 0;
 
-	boneCount = 0;
-	frameCount = 0;
+	//boneCount = 0;
+	//frameCount = 0;
 }
 
 
@@ -26,9 +26,9 @@ AnimusInstanceMaterialNode::~AnimusInstanceMaterialNode()
 }
 
 //load first, then set up after glutInit
-void AnimusInstanceMaterialNode::glSetUp( const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1)
+void AnimusInstanceMaterialNode::glSetUp(const glm::mat4 &PV, const glm::mat4 &AdjustMatrix, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode *pAnim1)
 {
-	glSetUpShader(pAnim0->bones.size(), pAnim0->length);
+	glSetUpShader();
 	glGenTextures(textureCount, TEXs);
 	for (int i = 0; i < textureCount; ++i)
 	{
@@ -38,16 +38,16 @@ void AnimusInstanceMaterialNode::glSetUp( const glm::mat4 &PV, const glm::vec4 &
 	glGenTextures(2, TBTEXs);
 	glSetUpTexBuffer(pAnim0, 0);
 	glSetUpTexBuffer(pAnim1, 1);
-	glSetUpUniforms(PV, LightDirection, pAnim0, pAnim1);
+	glSetUpUniforms(PV, AdjustMatrix, LightDirection, pAnim0, pAnim1);
 }
 
-void AnimusInstanceMaterialNode::glSetUpShader(int _boneCount, int _frameCount)
+void AnimusInstanceMaterialNode::glSetUpShader()
 {
-	boneCount = _boneCount;
-	frameCount = _frameCount;
+	//boneCount = _boneCount;
+	//frameCount = _frameCount;
 
-	GLint maxTexel(0);
-	glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTexel);
+	//GLint maxTexel(0);
+	//glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE, &maxTexel);
 	//printf("maxTexel: %d\n", maxTexel);
 
 	vertSrc = "#version 450 core\n"
@@ -61,6 +61,7 @@ void AnimusInstanceMaterialNode::glSetUpShader(int _boneCount, int _frameCount)
 		"out vec4 fColor;"
 		"out vec2 fTexcoord;"
 		"uniform mat4 PV;"//different from un-instanced material CONSTANT
+		"uniform mat4 AdjustMatrix;"
 		"in mat4 vMatrix;"//different from un-instanced material PRE-INSTANCE
 		"in int frame;"//newly added PRE-INSTANCE
 		"in int anim;"//newly added PRE-INSTANCE new new new
@@ -104,7 +105,7 @@ void AnimusInstanceMaterialNode::glSetUpShader(int _boneCount, int _frameCount)
 		"mat4 boneTransform = weight * transpose(mat4(row1, row2, row3, row4));"
 		"finalTransform += boneTransform;"
 		"}"
-		"gl_Position = PV * vMatrix * finalTransform * vPosition;"
+		"gl_Position = PV * vMatrix * AdjustMatrix * finalTransform * vPosition;"
 		"vec3 worldLight = normalize(LightDirection.xyz);"
 		"vec3 worldNormal = normalize(mat3(vMatrix) * vNormal);"
 		"fColor = vec4(vColor.xyz * (0.5 * dot(worldNormal, worldLight) + 0.5), vColor.w);"// vColor * clamp(dot(vNormal, LightDirection.xyz), 0.0, 1.0);//vColor;//vec4(worldNormal, 1.0); //vec4(worldLight, 1.0);
@@ -166,12 +167,14 @@ void AnimusInstanceMaterialNode::glSetUpShader(int _boneCount, int _frameCount)
 	glUseProgram(program);//
 }
 
-void AnimusInstanceMaterialNode::glSetUpUniforms(const glm::mat4 &PV, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode  *pAnim1)
+void AnimusInstanceMaterialNode::glSetUpUniforms(const glm::mat4 &PV, const glm::mat4 &AdjustMatrix, const glm::vec4 &LightDirection, AnimusAnimationNode *pAnim0, AnimusAnimationNode  *pAnim1)
 {
 	//outside uniforms
-	GLint matrix = glGetUniformLocation(program, "PV");
-	//printf("PV: %d\n", matrix);
-	glUniformMatrix4fv(matrix, 1, GL_FALSE, &PV[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
+	GLint pV = glGetUniformLocation(program, "PV");
+	glUniformMatrix4fv(pV, 1, GL_FALSE, &PV[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
+
+	GLint adjustMatrix = glGetUniformLocation(program, "AdjustMatrix");
+	glUniformMatrix4fv(adjustMatrix, 1, GL_FALSE, &AdjustMatrix[0][0]);//second parameter indicates the number of targeted matrices, not the number of components in you matrix!!!!!!
 
 	GLint lightDirection = glGetUniformLocation(program, "LightDirection");//
 	glUniform4fv(lightDirection, 1, &LightDirection[0]);//second parameter indicates the number of targeted vector, not the number of components in your vector!!!!!!

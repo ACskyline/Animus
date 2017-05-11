@@ -1,11 +1,13 @@
 #include "AnimusDisplayer.h"
+#include "imgui.h"
+#include "imgui_impl_glfw_gl3.h"
 
-const int LEFT_BUTTON = 0;
-const int MIDDLE_BUTTON = 1;
-const int RIGHT_BUTTON = 2;
+const int LEFT_BUTTON = GLFW_MOUSE_BUTTON_1;
+const int RIGHT_BUTTON = GLFW_MOUSE_BUTTON_2;
+const int MIDDLE_BUTTON = GLFW_MOUSE_BUTTON_3;
 
-const int BUTTON_DOWN = 0;
-const int BUTTON_UP = 1;
+const int BUTTON_DOWN = GLFW_PRESS;
+const int BUTTON_UP = GLFW_RELEASE;
 
 AnimusMaterialNode AnimusDisplayer::lMat(1);
 AnimusInstanceMaterialNode AnimusDisplayer::lIMat(1);
@@ -26,6 +28,8 @@ AnimusAnimationNode AnimusDisplayer::lAnim1;
 AnimusMarkerNode AnimusDisplayer::lGrid(AnimusMarkerNodeType::Grid);
 
 AnimusMarkerNode AnimusDisplayer::lAxis(AnimusMarkerNodeType::Axis);
+
+AnimusMarkerNode AnimusDisplayer::lCircle0(AnimusMarkerNodeType::Circle);//new new new
 
 glm::vec4 AnimusDisplayer::clearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
@@ -53,20 +57,37 @@ float AnimusDisplayer::cameraZoomLimit = 1;
 
 bool AnimusDisplayer::mustUpdatePVM = false;
 
+float AnimusDisplayer::instanceCenterZoomStep = 1;
+
+clock_t AnimusDisplayer::begin;
+
+clock_t AnimusDisplayer::end;
+
+glm::mat4 AnimusDisplayer::V;
+
+glm::mat4 AnimusDisplayer::P;
+
+glm::mat4 AnimusDisplayer::M;
+
+glm::vec4 AnimusDisplayer::LightDirection;
+
 void AnimusDisplayer::initScene()
 {	
-	lCamera.position = glm::vec3(0, 20, 50);
+	lCamera.position = glm::vec3(CAMERA_POS_X, CAMERA_POS_Y, CAMERA_POS_Z);
 	lCamera.perspectiveAspect = (float)windowSizeX / (float)windowSizeY;
-	lCamera.perspectiveNear = 0.1f;
-	lCamera.perspectiveFar = 3000.0f;
+	lCamera.perspectiveNear = CAMERA_NEAR;
+	lCamera.perspectiveFar = CAMERA_FAR;
 
-	lTransformM.position = glm::vec3(0, 0, 0);
+	lTransformM.position = glm::vec3(0, 0, -5);
 
-	glm::mat4 PV = lCamera.calculatePerspectiveProjectMatrix()*lCamera.calculatePerspectiveViewMatrix();
-	glm::mat4 PVM = PV*lTransformM.calculateModelMatrix();//glm::perspective<float>(60.0f / 180.0f * 3.14f, (float)AnimusDisplayer::windowSizeX / (float)AnimusDisplayer::windowSizeY, 0.1f, 1600.0f) * glm::translate(glm::mat4(), glm::vec3(0.0, -700.0, -1500.0));
-	glm::vec4 LightDirection = lLight.direction;//from vertex to the light;
+	P = lCamera.calculatePerspectiveProjectMatrix();
+	V = lCamera.calculatePerspectiveViewMatrix();
+	M = lTransformM.calculateModelMatrix();
+	glm::mat4 PV = P*V;
+	glm::mat4 PVM = PV*M;
+	LightDirection = lLight.direction;
 
-	lIMat.glSetUp(PV, LightDirection, &lAnim0, &lAnim1);
+	lIMat.glSetUp(PV, M, LightDirection, &lAnim0, &lAnim1);
 	glUseProgram(lIMat.program);
 	GLint iposition = glGetAttribLocation(lIMat.program, "vPosition");
 	GLint inormal = glGetAttribLocation(lIMat.program, "vNormal");//
@@ -76,8 +97,7 @@ void AnimusDisplayer::initScene()
 	GLint imatrix = glGetAttribLocation(lIMat.program, "vMatrix");//PER-INSTANCE
 	GLint iframe = glGetAttribLocation(lIMat.program, "frame");//PER-INSTANCE
 	GLint ianim = glGetAttribLocation(lIMat.program, "anim");//PER-INSTANCE
-	//lIMesh.glSetUp(1000, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), &lAnim0, iposition, inormal, itexcoord, iboneW, iboneI, imatrix, iframe, ianim);
-	lIMesh.glSetUp(5000, glm::vec3(0.0, 0.0, -20.0), glm::vec3(20.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -20.0), &lAnim0, iposition, inormal, itexcoord, iboneW, iboneI, imatrix, iframe, ianim);
+	lIMesh.glSetUp(INSTANCE_INITIAL_COUNT, glm::vec3(0.0, 0.0, -INSTANCE_INITIAL_STRIDE), glm::vec3(INSTANCE_INITIAL_STRIDE, 0.0, 0.0), glm::vec3(0.0, 0.0, -INSTANCE_INITIAL_STRIDE), &lAnim0, iposition, inormal, itexcoord, iboneW, iboneI, imatrix, iframe, ianim);
 	glUseProgram(0);
 
 	lMat.glSetUp(PVM, LightDirection);
@@ -89,9 +109,9 @@ void AnimusDisplayer::initScene()
 	glUseProgram(0);
 
 	lAnim0.glSetUpBone(PVM);
-	lAxis.glSetUpMarker(PVM);
-	lGrid.glSetUpMarker(PV);
-
+	lAxis.glSetUpMarker(PV * glm::scale(glm::mat4(), glm::vec3(MARKER_SCALE)));
+	lGrid.glSetUpMarker(PV * glm::scale(glm::mat4(), glm::vec3(MARKER_SCALE)));
+	lCircle0.glSetUpMarker(PV * glm::translate(glm::mat4(), lIMesh.center) * glm::scale(glm::mat4(), glm::vec3(lIMesh.radius)));
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -99,17 +119,32 @@ void AnimusDisplayer::initScene()
 
 void AnimusDisplayer::renderScene(void)
 {
-	glm::mat4 PV = lCamera.calculatePerspectiveProjectMatrix()*lCamera.calculatePerspectiveViewMatrix();
+	begin = clock();
 
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	frame = (++frame) % lAnim0.length;
 
+	if (mustUpdatePVM)
+	{
+		P = lCamera.calculatePerspectiveProjectMatrix();
+		V = lCamera.calculatePerspectiveViewMatrix();
+		glm::mat4 PV = P*V;
+
+		lMat.glUpdateMatrix(PV*lTransformM.calculateModelMatrix());
+		lIMat.glUpdatePV(PV);
+		lAnim0.glUpdateBoneMatrix(PV*lTransformM.calculateModelMatrix());
+		lAxis.glUpdateMarkerMatrix(PV * glm::scale(glm::mat4(), glm::vec3(MARKER_SCALE)));
+		lGrid.glUpdateMarkerMatrix(PV * glm::scale(glm::mat4(), glm::vec3(MARKER_SCALE)));
+		lCircle0.glUpdateMarkerMatrix(PV * glm::translate(glm::mat4(), lIMesh.center) * glm::scale(glm::mat4(), glm::vec3(lIMesh.radius)));
+
+		mustUpdatePVM = false;
+	}
+
 	////////////////////
 	//Debug lMesh
 	lMesh.glUpdateQuick(frame, &lAnim0);
-	lMat.glUpdateMatrix(PV*lTransformM.calculateModelMatrix());
 	glUseProgram(lMat.program);
 	glBindVertexArray(lMesh.VAOs[0]);
 	glDrawElements(GL_TRIANGLES, lMesh.vertexIndexCount, GL_UNSIGNED_INT, (void*)0);//modified pipeline does not accept GL_QUADS as a parameter
@@ -119,7 +154,6 @@ void AnimusDisplayer::renderScene(void)
 	////////////////////
 	//Debug lIMesh
 	lIMesh.glUpdate(&lAnim0, &lAnim1);
-	lIMat.glUpdatePV(PV);
 	glUseProgram(lIMat.program);
 	glBindVertexArray(lIMesh.VAOs[0]);
 	glDrawElementsInstanced(GL_TRIANGLES, lIMesh.vertexIndexCount, GL_UNSIGNED_INT, (void*)0, lIMesh.instanceCount);//modified pipeline does not accept GL_QUADS as a parameter
@@ -128,7 +162,6 @@ void AnimusDisplayer::renderScene(void)
 
 	////////////////////
 	//Debug lAnim
-	lAnim0.glUpdateBoneMatrix(PV*lTransformM.calculateModelMatrix());
 	glDisable(GL_DEPTH_TEST);
 	lAnim0.glUpdateBone(frame);
 	glUseProgram(lAnim0.program);
@@ -138,24 +171,50 @@ void AnimusDisplayer::renderScene(void)
 	glEnable(GL_DEPTH_TEST);
 	////////////////////
 
-	
-	lAxis.glUpdateMarkerMatrix(PV*lTransformM.calculateModelMatrix());
+	////////////////////
+	//Debug Marker
 	glUseProgram(lAxis.program);
 	glBindVertexArray(lAxis.VAOs[0]);
 	glDrawArrays(GL_LINES, 0, lAxis.vertexCount);
 	glBindVertexArray(0);
 
-	lGrid.glUpdateMarkerMatrix(PV);
 	glUseProgram(lGrid.program);
 	glBindVertexArray(lGrid.VAOs[0]);
 	glDrawArrays(GL_LINES, 0, lGrid.vertexCount);
 	glBindVertexArray(0);
 
-	glutSwapBuffers();
-	glutPostRedisplay();
+	glUseProgram(lCircle0.program);
+	glBindVertexArray(lCircle0.VAOs[0]);
+	glDrawArrays(GL_LINES, 0, lCircle0.vertexCount);
+	glBindVertexArray(0);
+	/////////////////////
+
+	end = clock();
+	//printf("\r%ffps", (float)CLOCKS_PER_SEC / (end - begin));
 }
 
-void AnimusDisplayer::mouseButton(int button, int state, int x, int y)
+void AnimusDisplayer::mouseButton(GLFWwindow* window, int button, int action, int mods)
+{
+	//this function is not used
+	printf("button:%d,action:%d,mods:%d\n", button, action, mods);
+}
+
+void AnimusDisplayer::mouseMotion(GLFWwindow* window, double x, double y)
+{
+	//printf("x:%lf,y:%lf\n", x, y);
+	int lctrl = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
+	int lalt = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+	if (lctrl == GLFW_PRESS)
+	{
+		mouseMotionInstanceCenterControlMode(x, y);
+	}
+	if (lalt == GLFW_PRESS)
+	{
+		mouseMotionCameraMode(x, y);
+	}
+}
+
+void AnimusDisplayer::mouseButtonCameraMode(int button, int state, int x, int y)
 {
 	mouseLastX = x;
 	mouseLastY = y;
@@ -208,7 +267,60 @@ void AnimusDisplayer::mouseButton(int button, int state, int x, int y)
 	}
 }
 
-void AnimusDisplayer::mouseMotion(int x, int y)
+void AnimusDisplayer::mouseButtonInstanceCenterControlMode(int button, int state, int x, int y)
+{
+	mouseLastX = x;
+	mouseLastY = y;
+	switch (button)
+	{
+	case LEFT_BUTTON:
+		switch (state)
+		{
+		case BUTTON_DOWN:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Move;
+			break;
+		case BUTTON_UP:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Idle;
+			break;
+		default:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Idle;
+			break;
+		}
+		break;
+	case RIGHT_BUTTON:
+		switch (state)
+		{
+		case BUTTON_DOWN:
+			//do nothing
+			break;
+		case BUTTON_UP:
+			//do nothing
+			break;
+		default:
+			//do nothing
+			break;
+		}
+		break;
+	case MIDDLE_BUTTON:
+		switch (state)
+		{
+		case BUTTON_DOWN:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Zoom;
+			break;
+		case BUTTON_UP:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Idle;
+			break;
+		default:
+			AnimusDisplayer::lIMesh.centerControlState = AnimusInstanceCenterControlState::Idle;
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void AnimusDisplayer::mouseMotionCameraMode(int x, int y)
 {
 	AnimusCameraState currentState = AnimusDisplayer::lCamera.cameraState;
 
@@ -238,7 +350,7 @@ void AnimusDisplayer::mouseMotion(int x, int y)
 			relativePosition = glm::rotate(glm::mat4(), -AnimusDisplayer::cameraOrbitStep * (float)deltaY, xAxis) * relativePosition;//flip twice(because rotate is for right hand system), so total Y flip = 3
 			resultPosition = currentCenter + (glm::vec3)relativePosition;
 			resultCenter = currentCenter;
-			if ((resultPosition.x-currentCenter.x) * (currentPosition.x-currentCenter.x) < 0 && (resultPosition.z-currentCenter.z) * (currentPosition.z-currentCenter.z) < 0)
+			if ((resultPosition.x - currentCenter.x) * (currentPosition.x - currentCenter.x) < 0 && (resultPosition.z - currentCenter.z) * (currentPosition.z - currentCenter.z) < 0)
 			{
 				AnimusDisplayer::lCamera.up = -AnimusDisplayer::lCamera.up;
 			}
@@ -258,31 +370,143 @@ void AnimusDisplayer::mouseMotion(int x, int y)
 		AnimusDisplayer::mouseLastY = y;
 		AnimusDisplayer::lCamera.position = resultPosition;
 		AnimusDisplayer::lCamera.center = resultCenter;
-		
+
 		AnimusDisplayer::mustUpdatePVM = true;
 	}
 }
 
-void AnimusDisplayer::mainLoop(int argc, char**argv)
+void AnimusDisplayer::mouseMotionInstanceCenterControlMode(int x, int y)
 {
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(windowPositionX, windowPositionY);
-	glutInitWindowSize(windowSizeX, windowSizeY);
-	glutInitContextVersion(4, 5);
-	glutInitContextProfile(GLUT_CORE_PROFILE);
-	glutCreateWindow("Animus_pre_alpha");
+	AnimusInstanceCenterControlState currentState = AnimusDisplayer::lIMesh.centerControlState;
+
+	if (currentState != AnimusInstanceCenterControlState::Idle)
+	{
+		int deltaX = x - AnimusDisplayer::mouseLastX;
+		int deltaY = y - AnimusDisplayer::mouseLastY;//need to flip
+
+		switch (currentState)
+		{
+		case AnimusInstanceCenterControlState::Move:
+			{
+				glm::vec4 rayDirTemp = glm::vec4((float)x / windowSizeX * 2 - 1, 1 - (float)y / windowSizeY * 2, -1, 1);
+				rayDirTemp = glm::inverse(AnimusDisplayer::P) * rayDirTemp;
+				rayDirTemp = glm::normalize(glm::inverse(AnimusDisplayer::V) * glm::vec4(rayDirTemp.x, rayDirTemp.y, -1, 0));
+				glm::vec3 rayDir = glm::vec3(rayDirTemp.x, rayDirTemp.y, rayDirTemp.z);
+				glm::vec3 rayPoint = AnimusDisplayer::lCamera.position;
+				glm::vec3 planeNormal = glm::vec3(0, 1, 0);
+				glm::vec3 planePoint = glm::vec3(0, 0, 0);
+				float t = (planeNormal.x * (planePoint.x - rayPoint.x) + planeNormal.y * (planePoint.y - rayPoint.y) + planeNormal.z * (planePoint.z - rayPoint.z)) / (planeNormal.x * rayDir.x + planeNormal.y * rayDir.y + planeNormal.z * rayDir.z);
+				AnimusDisplayer::lIMesh.center = rayPoint + t * rayDir;
+			}
+			break;
+		case AnimusInstanceCenterControlState::Zoom:
+			AnimusDisplayer::lIMesh.radius += deltaX * AnimusDisplayer::instanceCenterZoomStep;
+			break;
+		default:
+			break;
+		}
+		AnimusDisplayer::mouseLastX = x;
+		AnimusDisplayer::mouseLastY = y;
+
+		AnimusDisplayer::mustUpdatePVM = true;
+	}
+}
+
+int AnimusDisplayer::mainLoop(int argc, char**argv)
+{
+	GLFWwindow* window;
+
+	if (!glfwInit())
+		return -1;
+
+	window = glfwCreateWindow(windowSizeX, windowSizeY, "Animus", NULL, NULL);
+	if (!window)
+	{
+		glfwTerminate();
+		return -1;
+	}
+
+	//glfwSetMouseButtonCallback(window, mouseButton);//No need here
+	glfwSetCursorPosCallback(window, mouseMotion);//
+
+	glfwMakeContextCurrent(window);
 	glewInit();
-
-	GLubyte const *v = glGetString(GL_VERSION);
-	std::cout << v << std::endl;
-
 	initScene();
 
-	// register callbacks
-	glutDisplayFunc(renderScene);
-	glutMouseFunc(mouseButton);
-	glutMotionFunc(mouseMotion);
+	GLubyte const *v = glGetString(GL_VERSION);
+	printf("%s\n", v);
 
-	glutMainLoop();
+	ImGui_ImplGlfwGL3_Init(window, true);
+
+	//bool show_test_window = true;
+	//bool show_another_window = false;
+	int instanceCountUI = 100;
+	ImVec4 clear_color = ImColor(114, 144, 154);
+
+	while (!glfwWindowShouldClose(window))
+	{
+		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);//Must add GL_DEPTH_BUFFER_BIT. Because ImGui's depth will always be the shallowest, it will block everything.
+
+		renderScene();
+
+		ImGui_ImplGlfwGL3_NewFrame();
+
+		{
+			//ImGui::SetNextWindowPos(ImVec2(0, 0));
+			//ImGui::SetNextWindowSize(ImVec2(100, 50));
+			ImGui::Begin("Tools");
+			if (ImGui::SliderInt("Instance Count", &instanceCountUI, 1, 5000))
+			{
+				//AnimusDisplayer::lIMesh.glResetAll(instanceCountUI, glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), &AnimusDisplayer::lAnim0);
+				AnimusDisplayer::lIMesh.glResetInstances(instanceCountUI, glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE));
+			}
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::End();
+		}
+
+		//// 1. Show a simple window
+		//// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+		//{
+		//	static float f = 0.0f;
+		//	ImGui::Text("Hello, world!");
+		//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		//	ImGui::ColorEdit3("clear color", (float*)&clear_color);
+		//	if (ImGui::Button("Test Window")) show_test_window ^= 1;
+		//	if (ImGui::Button("Another Window")) show_another_window ^= 1;
+		//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		//}
+
+		//// 2. Show another simple window, this time using an explicit Begin/End pair
+		//if (show_another_window)
+		//{
+		//	ImGui::SetNextWindowSize(ImVec2(10, 10), ImGuiSetCond_FirstUseEver);
+		//	ImGui::Begin("Another Window", &show_another_window);
+		//	ImGui::Text("Hello");
+		//	ImGui::End();
+		//}
+
+		//// 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
+		//if (show_test_window)
+		//{
+		//	ImGui::SetNextWindowPos(ImVec2(200, 100), ImGuiSetCond_FirstUseEver);
+		//	ImGui::ShowTestWindow(&show_test_window);
+		//}
+
+		// Rendering ImGui
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+		ImGui::Render();
+
+		glfwSwapBuffers(window);
+
+		glfwPollEvents();
+	}
+
+	// Cleanup
+	ImGui_ImplGlfwGL3_Shutdown();
+	glfwTerminate();
+
+	return 0;
 }

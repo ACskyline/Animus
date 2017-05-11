@@ -14,6 +14,10 @@
 #define FRAME_BEFORE_CHANGE_MULTIPLE_IDLE 3
 #define FRAME_BEFORE_CHANGE_FACTOR 60
 
+enum struct AnimusInstanceCenterControlState{
+	Move, Zoom, Idle, AnimusInstanceControlModeCount
+};
+
 enum struct AnimusInstanceState{
 	Walk, Idle, AnimusInstanceStateCount
 };
@@ -40,9 +44,6 @@ private:
 	GLint frame;
 	GLint anim;//new new new
 
-	glm::vec3 center;//new new new
-	float radius;//new new new
-
 	int vertexExistInBuffer(glm::vec4 *vPosArray, glm::vec2 *vTexArray, glm::vec3 *vNormArray, glm::vec4 vPos, glm::vec2 vTex, glm::vec3 vNorm, int size);
 	int vertexExistInVector(glm::vec4 vertex, const std::vector<glm::vec4> &_V);
 	int normalExistInVector(glm::vec3 normal, const std::vector<glm::vec3> &_N);
@@ -63,6 +64,9 @@ private:
 	void glSetUpInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &strideX, const glm::vec3 &strideY);//new new new
 
 	void calInstanceTransformMatrices(int index);//new new new
+
+	void glResetInstanceBuffer();
+	void glResetInstanceAttribs();
 public:
 	AnimusInstanceMeshNode();
 	~AnimusInstanceMeshNode();
@@ -72,6 +76,11 @@ public:
 	int *instanceFrame;//new
 	int *instanceAnim;//new new new
 	int instanceCount;//new
+
+	glm::vec3 center;//new new new
+	float radius;//new new new
+
+	AnimusInstanceCenterControlState centerControlState;
 
 	std::vector<glm::vec4> V;
 	std::vector<glm::vec2> T;
@@ -98,5 +107,7 @@ public:
 	void glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, AnimusAnimationNode *lAnim, GLint position, GLint normal, GLint texcoord, GLint boneW, GLint boneI, GLint vMatrix, GLint frame, GLint anim);//new new new
 	void glSetUp(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &strideX, const glm::vec3 &strideY, AnimusAnimationNode *lAnim, GLint position, GLint normal, GLint texcoord, GLint boneW, GLint boneI, GLint vMatrix, GLint frame, GLint anim);//new new new
 	void glUpdate(AnimusAnimationNode* AANode0, AnimusAnimationNode* AANode1);
+	void glResetInstances(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride);
+	void glResetAll(int _instanceCount, const glm::vec3 &translation, const glm::vec3 &stride, AnimusAnimationNode *lAnim);
 };
 
