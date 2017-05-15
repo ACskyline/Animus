@@ -17,6 +17,8 @@
 #include <vector>
 
 #define MARKER_SCALE 10
+#define WINDOW_INITIAL_WIDTH 1024
+#define WINDOW_INITIAL_HEIGHT 768
 #define CAMERA_POS_X 0
 #define CAMERA_POS_Y 50
 #define CAMERA_POS_Z 100

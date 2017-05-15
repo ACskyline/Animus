@@ -37,9 +37,9 @@ int AnimusDisplayer::windowPositionX = 400;
 
 int AnimusDisplayer::windowPositionY = 300;
 
-int AnimusDisplayer::windowSizeX = 800;
+int AnimusDisplayer::windowSizeX = WINDOW_INITIAL_WIDTH;
 
-int AnimusDisplayer::windowSizeY = 600;
+int AnimusDisplayer::windowSizeY = WINDOW_INITIAL_HEIGHT;
 
 int AnimusDisplayer::frame = 0;
 
@@ -440,8 +440,10 @@ int AnimusDisplayer::mainLoop(int argc, char**argv)
 
 	//bool show_test_window = true;
 	//bool show_another_window = false;
-	int instanceCountUI = 100;
+	int instanceCountUI = INSTANCE_INITIAL_COUNT;
 	ImVec4 clear_color = ImColor(114, 144, 154);
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(150, 400));
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -451,17 +453,47 @@ int AnimusDisplayer::mainLoop(int argc, char**argv)
 		renderScene();
 
 		ImGui_ImplGlfwGL3_NewFrame();
-
 		{
-			//ImGui::SetNextWindowPos(ImVec2(0, 0));
-			//ImGui::SetNextWindowSize(ImVec2(100, 50));
 			ImGui::Begin("Tools");
-			if (ImGui::SliderInt("Instance Count", &instanceCountUI, 1, 5000))
+			if (ImGui::SliderInt("Instances", &instanceCountUI, 1, 10000))
 			{
 				//AnimusDisplayer::lIMesh.glResetAll(instanceCountUI, glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), &AnimusDisplayer::lAnim0);
 				AnimusDisplayer::lIMesh.glResetInstances(instanceCountUI, glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE), glm::vec3(0, 0, -INSTANCE_INITIAL_STRIDE));
 			}
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::TextColored(ImVec4(0.4, 0.3, 0.0, 1.0), "Use mouse + left Alt to move the camera.");
+			ImGui::TextColored(ImVec4(0.0, 0.5, 0.3, 1.0), "Use mouse + left Ctrl to move the crowd.");
+			if (ImGui::CollapsingHeader("Camera"))
+			{
+				if (ImGui::TreeNode("position"))
+				{
+					ImGui::Text("x:%f,y:%f,z:%f", AnimusDisplayer::lCamera.position.x, AnimusDisplayer::lCamera.position.y, AnimusDisplayer::lCamera.position.z);
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("focus"))
+				{
+					ImGui::Text("x:%f,y:%f,z:%f", AnimusDisplayer::lCamera.center.x, AnimusDisplayer::lCamera.center.y, AnimusDisplayer::lCamera.center.z);
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("up"))
+				{
+					ImGui::Text("x:%f,y:%f,z:%f", AnimusDisplayer::lCamera.up.x, AnimusDisplayer::lCamera.up.y, AnimusDisplayer::lCamera.up.z);
+					ImGui::TreePop();
+				}
+			}
+			if (ImGui::CollapsingHeader("Circle"))
+			{
+				if (ImGui::TreeNode("center"))
+				{
+					ImGui::Text("x:%f,y:%f,z:%f", AnimusDisplayer::lIMesh.center.x, AnimusDisplayer::lIMesh.center.y, AnimusDisplayer::lIMesh.center.z);
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNode("radius"))
+				{
+					ImGui::Text("r:%f", AnimusDisplayer::lIMesh.radius);
+					ImGui::TreePop();
+				}
+			}
 			ImGui::End();
 		}
 
