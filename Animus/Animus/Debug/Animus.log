@@ -1,25 +1,79 @@
-﻿生成启动时间为 2017/5/15 21:19:59。
-     1>项目“E:\MyDocuments\Visual Studio Project\Animus\Animus\Animus.vcxproj”在节点 2 上(Build 个目标)。
+﻿生成启动时间为 2017/6/21 12:56:22。
+     1>项目“E:\MyDocuments\github\Animus\Animus\Animus\Animus.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         D:\VisualStudio2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D FBXSDK_SHARED /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt AnimusDisplayer.cpp imgui_impl_glfw_gl3.cpp main.cpp
-         AnimusDisplayer.cpp
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(52): warning C4305: “初始化”: 从“double”到“float”截断
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(78): warning C4305: “=”: 从“double”到“float”截断
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(209): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(213): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(464): warning C4305: “参数”: 从“double”到“float”截断
-     1>e:\mydocuments\visual studio project\animus\animus\animusdisplayer.cpp(465): warning C4305: “参数”: 从“double”到“float”截断
-         正在生成代码...
-         正在编译...
+         D:\VisualStudio2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D FBXSDK_SHARED /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt AnimusAnimationNode.cpp AnimusCameraNode.cpp AnimusDisplayer.cpp AnimusInstanceMaterialNode.cpp AnimusInstanceMeshNode.cpp AnimusLightNode.cpp AnimusLoader.cpp AnimusMarkerNode.cpp AnimusMaterialNode.cpp AnimusMeshNode.cpp AnimusNode.cpp AnimusTransformNode.cpp imgui.cpp imgui_demo.cpp imgui_draw.cpp imgui_impl_glfw_gl3.cpp main.cpp
          main.cpp
          imgui_impl_glfw_gl3.cpp
-     1>e:\mydocuments\visual studio project\animus\animus\imgui_impl_glfw_gl3.cpp(157): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>e:\mydocuments\visual studio project\animus\animus\imgui_impl_glfw_gl3.cpp(161): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>e:\mydocuments\visual studio project\animus\animus\imgui_impl_glfw_gl3.cpp(170): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>e:\mydocuments\visual studio project\animus\animus\imgui_impl_glfw_gl3.cpp(171): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\imgui_impl_glfw_gl3.cpp(157): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\imgui_impl_glfw_gl3.cpp(161): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\imgui_impl_glfw_gl3.cpp(170): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\imgui_impl_glfw_gl3.cpp(171): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+         imgui_draw.cpp
+         imgui_demo.cpp
+         imgui.cpp
+         AnimusTransformNode.cpp
+         AnimusNode.cpp
+         AnimusMeshNode.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(79): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(94): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(109): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(125): warning C4101: “count”: 未引用的局部变量
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(675): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(680): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(685): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(690): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusmeshnode.cpp(750): warning C4018: “<”: 有符号/无符号不匹配
+         AnimusMaterialNode.cpp
+         AnimusMarkerNode.cpp
+         AnimusLoader.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(8): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(23): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(38): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(54): warning C4101: “count”: 未引用的局部变量
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(234): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(239): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(244): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(249): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusloader.cpp(309): warning C4018: “<”: 有符号/无符号不匹配
+         AnimusLightNode.cpp
+         AnimusInstanceMeshNode.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(105): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(120): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(135): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(151): warning C4101: “count”: 未引用的局部变量
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(701): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(706): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(711): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(716): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(776): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(985): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(1015): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(1320): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusinstancemeshnode.cpp(1350): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+         AnimusInstanceMaterialNode.cpp
+         AnimusDisplayer.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(52): warning C4305: “初始化”: 从“double”到“float”截断
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(78): warning C4305: “=”: 从“double”到“float”截断
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(209): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(213): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(464): warning C4305: “参数”: 从“double”到“float”截断
+     1>e:\mydocuments\github\animus\animus\animus\animusdisplayer.cpp(465): warning C4305: “参数”: 从“double”到“float”截断
+         AnimusCameraNode.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animuscameranode.cpp(7): warning C4305: “=”: 从“double”到“float”截断
+         AnimusAnimationNode.cpp
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(41): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(71): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(178): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(321): warning C4244: “=”: 从“fbxsdk::FbxLongLong”转换到“int”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(353): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(373): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(403): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(462): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(465): warning C4018: “<”: 有符号/无符号不匹配
+     1>e:\mydocuments\github\animus\animus\animus\animusanimationnode.cpp(474): warning C4018: “<”: 有符号/无符号不匹配
          正在生成代码...
        Link:
-         D:\VisualStudio2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.exe" /INCREMENTAL /NOLOGO /LIBPATH:Dependencies\glfw\ /LIBPATH:Dependencies\glew\ /LIBPATH:Dependencies\fbxsdk\ glfw3.lib glew32.lib opengl32.lib libfbxsdk.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.lib" /MACHINE:X86 Debug\AnimusAnimationNode.obj
+         D:\VisualStudio2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\MyDocuments\github\Animus\Animus\Debug\Animus.exe" /INCREMENTAL /NOLOGO /LIBPATH:Dependencies\glfw\ /LIBPATH:Dependencies\glew\ /LIBPATH:Dependencies\fbxsdk\ glfw3.lib glew32.lib opengl32.lib libfbxsdk.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\MyDocuments\github\Animus\Animus\Debug\Animus.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\MyDocuments\github\Animus\Animus\Debug\Animus.lib" /MACHINE:X86 Debug\AnimusAnimationNode.obj
          Debug\AnimusCameraNode.obj
          Debug\AnimusDisplayer.obj
          Debug\AnimusInstanceMaterialNode.obj
@@ -36,9 +90,9 @@
          Debug\imgui_draw.obj
          Debug\imgui_impl_glfw_gl3.obj
          Debug\main.obj
-         Animus.vcxproj -> E:\MyDocuments\Visual Studio Project\Animus\Debug\Animus.exe
-     1>已完成生成项目“E:\MyDocuments\Visual Studio Project\Animus\Animus\Animus.vcxproj”(Build 个目标)的操作。
+         Animus.vcxproj -> E:\MyDocuments\github\Animus\Animus\Debug\Animus.exe
+     1>已完成生成项目“E:\MyDocuments\github\Animus\Animus\Animus\Animus.vcxproj”(Build 个目标)的操作。
 
 生成成功。
 
-已用时间 00:00:04.46
+已用时间 00:00:13.08

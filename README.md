@@ -13,3 +13,18 @@ To simulate large crowd, I applyed instanced rendering and GPU skinning.
 
 ### Work to do
 I have to figure out a way to decrease CPU overhead when calculating new position for each instance. Currently I am planning to use transform feed back to move the calculation from CPU to GPU. Hope I am right about it.
+
+### Update 2
+All finished for now. GIFs added. 6/21/2017
+
+*Crowd Manipulation 1*
+![Crowd Scale](https://github.com/ACskyline/Animus/tree/test/img/crowd_scale.gif)
+
+*Crowd Manipulation 2*
+![Crowd Move](https://github.com/ACskyline/Animus/tree/test/img/crowd_move.gif)
+
+*Crowd Manipulation 3*
+![Crowd Number](https://github.com/ACskyline/Animus/tree/test/img/crowd_number.gif)
+
+*Crowd Manipulation 4*
+![Crowd Camera](https://github.com/ACskyline/Animus/tree/test/img/crowd_camera.gif)
