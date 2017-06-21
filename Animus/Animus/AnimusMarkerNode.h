@@ -2,9 +2,12 @@
 #include "AnimusNode.h"
 #include <cstdio>
 
+#define CIRCLE_SEGMENT 32
+#define TWO_PI 6.2831852
+
 enum AnimusMarkerNodeType
 {
-	Axis, Grid, AnimusMarkerNodeTypeCount
+	Axis, Grid, Circle, AnimusMarkerNodeTypeCount
 };
 
 class AnimusMarkerNode
@@ -14,7 +17,7 @@ private:
 	void glSetUpMarkerMesh();
 	void glSetUpMarkerBuffer();
 	void glSetUpMarkerShaders();
-	void glSetUpMarkerUniform(const glm::mat4 &vertexMatrix);
+	void glSetUpMarkerMatrix(const glm::mat4 &vertexMatrix);
 	void glSetUpMarkerAttrib(GLint _position, GLint _color);
 
 public:
@@ -40,6 +43,8 @@ public:
 	glm::vec4 axisColorY;
 	glm::vec4 axisColorZ;
 
+	glm::vec4 circleColor;//new new new
+	float circleRadius;//new new new
 
 	void glSetUpMarker(const glm::mat4 &vertexMatrix);
 	void glUpdateMarkerMatrix(const glm::mat4 &vertexMatrix);

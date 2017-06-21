@@ -3,13 +3,15 @@
 AnimusMaterialNode::AnimusMaterialNode(int _textureCount)
 {
 	setNodeType(AnimusNodeType::Material);
+
 	textureCount = _textureCount;
 	textures = new gli::texture[textureCount];
 	TEXs = new GLuint[textureCount];
 	program = 0;
 	vert = 0;
 	frag = 0;
-	vertexColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f);
+	vertexColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 	vertSrc = "#version 450 core\n"
 		"in vec4 vPosition;"
 		"in vec3 vNormal;"//
@@ -35,12 +37,11 @@ AnimusMaterialNode::AnimusMaterialNode(int _textureCount)
 		"in vec4 fColor;"
 		"in vec2 fTexcoord;"
 		"out vec4 color;"
-		"uniform sampler2D Tex;"
+		"uniform sampler2D Tex0;"
 		"void main(void)"
 		"{"
 		"vec2 realTexcoord = vec2(fTexcoord.s, 1.0 - fTexcoord.t);"//shiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiit,dds picture use filpped UV coordinates
-		"color = fColor * texture(Tex, realTexcoord);"
-		//"color = fColor;"
+		"color = fColor * texture(Tex0, realTexcoord);"
 		"}";
 }
 
@@ -111,13 +112,14 @@ void AnimusMaterialNode::glSetUpShader()
 	glAttachShader(program, vert);
 	glAttachShader(program, frag);
 	glLinkProgram(program);
-	glUseProgram(program);//
 
 	glGetProgramiv(program, GL_LINK_STATUS, &result);
 	if (result == GL_FALSE)
 	{
 		printf("program link failed\n");
 	}
+
+	glUseProgram(program);//
 }
 
 void AnimusMaterialNode::glSetUpTexture(int index)

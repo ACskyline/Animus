@@ -1055,18 +1055,18 @@ void AnimusMeshNode::glSetUpAttribs(GLint _position, GLint _normal, GLint _texco
 	glBindVertexArray(0);
 }
 
-void AnimusMeshNode::glUpdate(int frame, AnimusAnimationNode* AANode, GLint position, GLint normal, GLint texcoord)
+void AnimusMeshNode::glUpdate(int frame, AnimusAnimationNode* AANode)
 {
 	glUpdateMesh(frame, AANode);
 	glUpdateBuffers();
-	glUpdateAttribs(position, normal, texcoord);
+	//glUpdateAttribs(position, normal, texcoord);
 }
 
-void AnimusMeshNode::glUpdate(int frame, AnimusAnimationNode* AANode)
+void AnimusMeshNode::glUpdateQuick(int frame, AnimusAnimationNode* AANode)
 {
 	glUpdateMeshQuick(frame, AANode);
 	glUpdateBuffers();
-	glUpdateAttribs();
+	//glUpdateAttribs();
 }
 
 void AnimusMeshNode::glUpdateMesh(int frame, AnimusAnimationNode* AANode)
@@ -1329,50 +1329,50 @@ void AnimusMeshNode::glUpdateBuffers()
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void AnimusMeshNode::glUpdateAttribs(GLint position, GLint normal, GLint texcoord)
-{
-	//glBindVertexArray(VAOs[0]);
-
-	//glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(position, 0);//set binding index
-	//glEnableVertexAttribArray(position);
-	//glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
-
-	//glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(normal, 1);//set binding index
-	//glEnableVertexAttribArray(normal);
-	//glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
-
-	//glVertexAttribFormat(texcoord, 2, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(texcoord, 2);//set binding index
-	//glEnableVertexAttribArray(texcoord);
-	//glBindVertexBuffer(2, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 2 * sizeof(GLfloat));//use binding index
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
-
-	//glBindVertexArray(0);
-}
-
-void AnimusMeshNode::glUpdateAttribs()
-{
-	//glBindVertexArray(VAOs[0]);
-
-	//glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(position, 0);//set binding index
-	//glEnableVertexAttribArray(position);
-	//glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
-
-	//glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(normal, 1);//set binding index
-	//glEnableVertexAttribArray(normal);
-	//glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
-
-	//glVertexAttribFormat(texcoord, 2, GL_FLOAT, GL_FALSE, 0);
-	//glVertexAttribBinding(texcoord, 2);//set binding index
-	//glEnableVertexAttribArray(texcoord);
-	//glBindVertexBuffer(2, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 2 * sizeof(GLfloat));//use binding index
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
-
-	//glBindVertexArray(0);
-}
+//void AnimusMeshNode::glUpdateAttribs(GLint position, GLint normal, GLint texcoord)
+//{
+//	//glBindVertexArray(VAOs[0]);
+//
+//	//glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(position, 0);//set binding index
+//	//glEnableVertexAttribArray(position);
+//	//glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
+//
+//	//glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(normal, 1);//set binding index
+//	//glEnableVertexAttribArray(normal);
+//	//glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
+//
+//	//glVertexAttribFormat(texcoord, 2, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(texcoord, 2);//set binding index
+//	//glEnableVertexAttribArray(texcoord);
+//	//glBindVertexBuffer(2, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 2 * sizeof(GLfloat));//use binding index
+//
+//	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+//
+//	//glBindVertexArray(0);
+//}
+//
+//void AnimusMeshNode::glUpdateAttribs()
+//{
+//	//glBindVertexArray(VAOs[0]);
+//
+//	//glVertexAttribFormat(position, 4, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(position, 0);//set binding index
+//	//glEnableVertexAttribArray(position);
+//	//glBindVertexBuffer(0, VBOs[0], 0, 4 * sizeof(GLfloat));//use binding index
+//
+//	//glVertexAttribFormat(normal, 3, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(normal, 1);//set binding index
+//	//glEnableVertexAttribArray(normal);
+//	//glBindVertexBuffer(1, VBOs[0], sizeof(GLfloat) * vertexCount * 4, 3 * sizeof(GLfloat));//use binding index
+//
+//	//glVertexAttribFormat(texcoord, 2, GL_FLOAT, GL_FALSE, 0);
+//	//glVertexAttribBinding(texcoord, 2);//set binding index
+//	//glEnableVertexAttribArray(texcoord);
+//	//glBindVertexBuffer(2, VBOs[0], sizeof(GLfloat) * vertexCount * 4 + sizeof(GLfloat) * vertexCount * 3, 2 * sizeof(GLfloat));//use binding index
+//
+//	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+//
+//	//glBindVertexArray(0);
+//}
