@@ -21,10 +21,10 @@ All finished for now. GIFs added. 6/21/2017
 ![Crowd Scale](https://github.com/ACskyline/Animus/tree/test/img/crowd_scale.gif)
 
 *Crowd Manipulation 2*
-![Crowd Move](https://github.com/ACskyline/Animus/tree/test/img/crowd_move.gif)
+![Crowd Move](img/crowd_move.gif)
 
 *Crowd Manipulation 3*
-![Crowd Number](https://github.com/ACskyline/Animus/tree/test/img/crowd_number.gif)
+![Crowd Number](Animus/img/crowd_number.gif)
 
 *Crowd Manipulation 4*
 ![Crowd Camera](https://github.com/ACskyline/Animus/tree/test/img/crowd_camera.gif)
