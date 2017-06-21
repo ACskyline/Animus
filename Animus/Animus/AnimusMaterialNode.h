@@ -10,6 +10,7 @@ private:
 	void glSetUpTexture(int index = 0);
 	void glSetUpUniforms(const glm::mat4 &vertexMatrix, const glm::vec4 &LightDirection);
 public:
+
 	int textureCount;
 	gli::texture *textures;
 	GLuint *TEXs;
@@ -19,8 +20,10 @@ public:
 	glm::vec4 vertexColor;
 	char *vertSrc;
 	char *fragSrc;
+
 	AnimusMaterialNode(int _textureCount = 0);
 	~AnimusMaterialNode();
+
 	void glSetUp(const glm::mat4 &vertexMatrix, const glm::vec4 &LightDirection);
 	void glUpdateMatrix(const glm::mat4 &vertexMatrix);
 	int loadDdsTex(char* filename, int index = 0);
