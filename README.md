@@ -1,5 +1,4 @@
 # Animus
-## my graduation project
 
 A crowd simulation featuring GPU skinning.
 
